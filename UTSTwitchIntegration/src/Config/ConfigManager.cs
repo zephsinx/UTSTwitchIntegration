@@ -153,6 +153,9 @@ namespace UTSTwitchIntegration.Config
 
                 Logger.Info("Configuration system initialized");
                 Logger.Debug("Config file location: UserData/UTSTwitchIntegration.cfg");
+
+                MelonPreferences.Save();
+                Logger.Debug("Configuration file updated (new settings added with defaults if needed)");
             }
             catch (Exception ex)
             {

@@ -1,0 +1,281 @@
+================================================================================
+              UTS TWITCH INTEGRATION - INSTALLATION GUIDE
+================================================================================
+
+PREREQUISITES
+-------------
+Before you start, make sure you have:
+
+1. Ultimate Theater Simulator (tested with v1.3.4, Build ID 20779152)
+2. A Twitch account for streaming
+3. Basic knowledge of your game's installation folder
+
+
+STEP 1: INSTALL MELONLOADER
+----------------------------
+The mod requires MelonLoader 0.7.2-ci.2367 (nightly) or above.
+
+1. Download MelonLoader:
+   - Go to: https://github.com/LavaGang/MelonLoader/releases
+   - Download the installer: MelonLoader.Installer.exe
+
+2. Run the installer:
+   - Launch MelonLoader.Installer.exe
+   - Click "Select" and browse to your game's .exe file
+   - Usually at: C:\Program Files\Steam\steamapps\common\
+                  UltimateTheaterSimulator\UltimateTheaterSimulator.exe
+   - Enable **Enable Nightly Builds** and select version 0.7.2-ci.2367 or newer
+   - Click "Install"
+   - Wait for installation to complete
+
+3. Verify installation:
+   - You should see a "MelonLoader" folder in your game directory
+   - Launch the game once
+   - You should see the MelonLoader console window appear
+   - Close the game
+
+
+STEP 2: INSTALL THE MOD
+------------------------
+1. Locate your game's Mods folder:
+   [Game Directory]/Mods/
+   
+   If it doesn't exist, create it.
+   
+   Example path:
+   C:\Program Files (x86)\Steam\steamapps\common\
+   UltimateTheaterSimulator\Mods\
+
+2. Extract mod files:
+   From the downloaded mod package, copy these files to the Mods folder:
+   - UTSTwitchIntegration.dll
+   - TwitchLib.Client.dll
+   - (Any other TwitchLib DLLs included)
+
+3. Launch the game:
+   - The game should start with MelonLoader
+   - The mod will generate a config file on first launch
+   - Check the MelonLoader console for "UTSTwitchIntegration mod loaded"
+   - Close the game
+
+
+STEP 3: GET A TWITCH OAUTH TOKEN (OPTIONAL)
+--------------------------------------------
+An OAuth token is recommended but not required. Without a token, the mod will
+connect anonymously. Note: Anonymous mode cannot use the VisitPermission setting.
+
+Method 1: Using Twitch Token Generator (Easiest)
+-------------------------------------------------
+1. Go to: https://twitchtokengenerator.com/
+
+2. Scroll down to "Custom Scope Token"
+
+3. Under "Scopes", find and check:
+   - chat:read
+
+4. Click "Generate Token"
+
+5. Authorize the application with Twitch (login if needed)
+
+6. Copy the "Access Token" (starts with "oauth:")
+   - Example: oauth:1234567890abcdefghijklmnopqrst
+
+7. Keep this token private! Don't share it with anyone.
+
+Method 2: Using Twitch Developer Console (Advanced)
+----------------------------------------------------
+1. Go to: https://dev.twitch.tv/console/apps
+
+2. Create or select an application
+
+3. Generate a token with "chat:read" scope
+
+4. Copy the token (you'll need to add "oauth:" prefix)
+
+
+STEP 4: CONFIGURE THE MOD
+--------------------------
+1. Find the config file:
+   Location: [Game Directory]/UserData/UTSTwitchIntegration.cfg
+   
+   Example path:
+   C:\Program Files (x86)\Steam\steamapps\common\
+   UltimateTheaterSimulator\UserData\UTSTwitchIntegration.cfg
+
+2. Open the file with Notepad or any text editor
+
+3. Edit these settings:
+
+   OAuthToken = "oauth:your_token_here"
+   
+   Replace "oauth:your_token_here" with your actual token from Step 3.
+   Leave empty ("") to connect anonymously (recommended to use a token).
+   Keep the quotes
+   
+   ChannelName = "your_twitch_username"
+   
+   Replace with your Twitch channel name (lowercase, no # symbol).
+   Keep the quotes.
+
+4. Save and close the file
+
+Example configuration:
+----------------------
+[UTSTwitchIntegration]
+OAuthToken = "oauth:1234567890abcdefghijklmnopqrst"
+ChannelName = "mychannel"
+CommandPrefix = "!"
+VisitCommandName = "visit"
+VisitPermission = 0
+Enabled = true
+UsePoolMode = true
+EnableImmediateSpawn = false
+MaxPoolSize = 300
+PoolTimeoutSeconds = 300
+SelectionMethod = 0
+UserCooldownSeconds = 60
+EnablePredefinedNames = false
+PredefinedNamesFilePath = "UserData/predefined_names.txt"
+
+
+STEP 5: TEST THE INSTALLATION
+------------------------------
+1. Launch the game
+
+2. Check the MelonLoader console window:
+   - Look for: "UTSTwitchIntegration mod loaded successfully!"
+   - Look for: "Configuration loaded"
+   - Look for: "Connected to Twitch channel: [your_channel]"
+
+3. Open your Twitch channel in a browser
+
+4. Type in chat: !visit
+
+5. Check the console:
+   - You should see: "Queued viewer '[your_username]' for spawn"
+
+6. In pool mode, wait for customers to spawn naturally in the game
+   In immediate mode (EnableImmediateSpawn=true), an NPC should spawn
+
+7. Look for your Twitch username above an NPC!
+
+
+STEP 6: OPTIONAL CONFIGURATION
+-------------------------------
+
+For Testing (Immediate Spawns):
+--------------------------------
+Set in config file:
+EnableImmediateSpawn = true
+
+This makes NPCs spawn instantly when viewers use !visit.
+Useful for testing, but can spawn a lot of NPCs if many viewers use the command.
+
+For Subscriber-Only Mode:
+--------------------------
+Set in config file:
+VisitPermission = 1
+
+Permission levels:
+0 = Everyone
+1 = Subscriber
+2 = VIP
+3 = Moderator
+4 = Broadcaster only
+
+For First-Come-First-Served Queue:
+-----------------------------------
+Set in config file:
+SelectionMethod = 1
+
+0 = Random selection (default)
+1 = FIFO (first to type !visit spawns first)
+
+For Predefined Names:
+---------------------
+1. Create a text file: [Game Directory]/UserData/predefined_names.txt
+
+2. Add names, one per line:
+   Alice
+   Bob
+   Charlie
+   David
+
+3. Set in config file:
+   EnablePredefinedNames = true
+
+When your queue is empty, the mod will use these names.
+
+
+COMMON ISSUES
+-------------
+
+If the mod doesn't load:
+- Check that the MelonLoader version is 0.7.2-ci.2367 or above
+- Check Latest.log in the MelonLoader folder for errors
+- Make sure the DLL is in the Mods folder
+
+If Twitch connection fails:
+- Check your OAuth token is correct
+- Check your channel name is lowercase with no # symbol
+- Ensure the token has the chat:read scope
+
+If the log shows "Configuration loaded" but there's no connection:
+- Make sure Enabled = true in the config
+- Check that ChannelName is not empty
+- If using OAuth, verify the token is correct
+- Remove any extra spaces in the config file
+
+If viewers type !visit and nothing happens:
+- Check the console for error messages
+- In pool mode, wait for natural customer spawns
+- Try EnableImmediateSpawn = true for testing
+- Check that MaxPoolSize isn't reached
+
+If the config file can't be found:
+- Launch the game once with the mod installed to generate the config
+- Check the UserData folder in the game directory
+- If UserData doesn't exist, create it
+
+If usernames don't display above NPCs:
+- This is a known limitation in some game states
+- Most NPCs should show usernames
+- Check the console for any TextMeshPro errors
+
+
+UNINSTALLING
+------------
+To remove the mod:
+
+1. Delete these files from [Game Directory]/Mods/:
+   - UTSTwitchIntegration.dll
+   - TwitchLib.Client.dll
+   - (Any other TwitchLib DLLs)
+
+2. Optionally delete the config file:
+   [Game Directory]/UserData/UTSTwitchIntegration.cfg
+
+To remove MelonLoader (optional):
+- Run the MelonLoader installer again
+- Click "Uninstall"
+
+
+SUPPORT
+-------
+For troubleshooting:
+
+1. Check the MelonLoader log:
+   [Game Directory]/MelonLoader/Latest.log
+   
+2. Look for errors related to "UTSTwitchIntegration"
+   
+3. Common things to check:
+   - MelonLoader version is 0.7.2-ci.2367 or above
+   - OAuth token is valid and complete
+   - Channel name is correct
+   - Config file syntax is correct (quotes, no typos)
+   
+4. When reporting issues, include:
+   - Log file excerpts
+   - Your config file (with token removed)
+   - A brief description of what's not working
