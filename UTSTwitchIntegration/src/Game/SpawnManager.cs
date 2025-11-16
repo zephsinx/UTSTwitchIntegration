@@ -21,17 +21,20 @@ namespace UTSTwitchIntegration.Game
         private readonly ConcurrentDictionary<CustomerController, string> spawnedViewers;
 
         /// <summary>
-        /// Flag to indicate a spawn is from SpawnManager
+        /// Username pending assignment for the next customer spawn
         /// </summary>
         private static string pendingUsername;
 
         private static readonly object PendingUsernameLock = new object();
 
         /// <summary>
-        /// Spawn rate limiting
+        /// Spawn rate limiting for immediate spawn mode
         /// </summary>
         private volatile float lastSpawnTime;
 
+        /// <summary>
+        /// Minimum time between immediate spawns in seconds
+        /// </summary>
         private const float MIN_SPAWN_INTERVAL = 5f;
 
         private bool hasLoggedTheaterControllerNullWarning = false;
@@ -90,7 +93,7 @@ namespace UTSTwitchIntegration.Game
 
             if (added)
             {
-                ModLogger.Info($"Viewer '{username}' added to spawn pool (Pool size: {this.queue.Count})");
+                ModLogger.Debug($"Viewer '{username}' added to spawn pool (Pool size: {this.queue.Count})");
             }
             else
             {
@@ -309,7 +312,7 @@ namespace UTSTwitchIntegration.Game
                 ModLogger.Debug("Cleared pending username");
 
                 this.lastSpawnTime = 0f;
-                ModLogger.Info("Spawn manager cleanup completed");
+                ModLogger.Debug("Spawn manager cleanup completed");
             }
             catch (System.Exception ex)
             {

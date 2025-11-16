@@ -50,7 +50,7 @@ namespace UTSTwitchIntegration.Twitch
 
             if (!this.config.Enabled)
             {
-                Logger.Info("Twitch integration is disabled in configuration");
+                Logger.Debug("Twitch integration is disabled in configuration");
                 return;
             }
 
@@ -136,9 +136,9 @@ namespace UTSTwitchIntegration.Twitch
                 if (errorMessage.Contains("authentication") || errorMessage.Contains("token") ||
                     errorMessage.Contains("unauthorized") || errorMessage.Contains("invalid"))
                 {
-                    Logger.Info("Your OAuth token may be invalid or expired.");
-                    Logger.Info("Generate a new token at: https://twitchtokengenerator.com/");
-                    Logger.Info("Make sure to select 'chat:read' scope when generating the token.");
+                    Logger.Debug("Your OAuth token may be invalid or expired.");
+                    Logger.Debug("Generate a new token at: https://twitchtokengenerator.com/");
+                    Logger.Debug("Make sure to select 'chat:read' scope when generating the token.");
                 }
 
                 Logger.Debug($"Stack trace: {ex.StackTrace}");
@@ -154,11 +154,11 @@ namespace UTSTwitchIntegration.Twitch
 
             try
             {
-                Logger.Info("Disconnecting from Twitch...");
+                Logger.Debug("Disconnecting from Twitch...");
                 this.client?.Disconnect();
                 this.isConnected = false;
                 this.isConnecting = false;
-                Logger.Info("Disconnected from Twitch");
+                Logger.Debug("Disconnected from Twitch");
             }
             catch (Exception ex)
             {
@@ -184,7 +184,7 @@ namespace UTSTwitchIntegration.Twitch
             float backoff = UnityEngine.Mathf.Min(UnityEngine.Mathf.Pow(2, this.reconnectAttempts - 1), 30f);
             this.reconnectScheduledTime = UnityEngine.Time.time + backoff;
 
-            Logger.Info($"Reconnecting in {backoff:F1} seconds (attempt {this.reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})...");
+            Logger.Debug($"Reconnecting in {backoff:F1} seconds (attempt {this.reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})...");
         }
 
         public void CheckAndProcessReconnect()
@@ -192,7 +192,7 @@ namespace UTSTwitchIntegration.Twitch
             if (this.reconnectScheduledTime > 0 && UnityEngine.Time.time >= this.reconnectScheduledTime)
             {
                 this.reconnectScheduledTime = 0f;
-                Logger.Info($"Attempting reconnection (attempt {this.reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})...");
+                Logger.Debug($"Attempting reconnection (attempt {this.reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})...");
 
                 try
                 {
@@ -229,7 +229,7 @@ namespace UTSTwitchIntegration.Twitch
 
                 Disconnect();
                 this.client = null;
-                Logger.Info("Twitch client cleanup completed");
+                Logger.Debug("Twitch client cleanup completed");
             }
             catch (Exception ex)
             {
@@ -309,11 +309,11 @@ namespace UTSTwitchIntegration.Twitch
                 if (errorMessage.Contains("network") || errorMessage.Contains("connection") ||
                     errorMessage.Contains("timeout") || errorMessage.Contains("unreachable"))
                 {
-                    Logger.Info("Check your internet connection and try again.");
+                    Logger.Debug("Check your internet connection and try again.");
                 }
                 else if (errorMessage.Contains("channel") || errorMessage.Contains("not found"))
                 {
-                    Logger.Info("Verify your channel name is correct and the channel exists.");
+                    Logger.Debug("Verify your channel name is correct and the channel exists.");
                 }
             }
 
@@ -379,7 +379,7 @@ namespace UTSTwitchIntegration.Twitch
         {
             try
             {
-                Logger.Info($"User {command.Username} used {command.CommandName} command");
+                Logger.Debug($"User {command.Username} used {command.CommandName} command");
                 Logger.Debug(
                     $"Command details - User: {command.Username}, " +
                     $"Role: {PermissionManager.GetPermissionLevelName(command.UserRole)}, " +

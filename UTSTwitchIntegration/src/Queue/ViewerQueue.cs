@@ -77,7 +77,7 @@ namespace UTSTwitchIntegration.Queue
 
         public ViewerInfo DequeueRandom()
         {
-            // TODO: Make random selection more efficient
+            // TODO: Optimize random selection - current implementation dequeues all items, selects one, then re-enqueues the rest.
             lock (this.usernamesInQueue)
             {
                 if (this.queue.Count == 0)

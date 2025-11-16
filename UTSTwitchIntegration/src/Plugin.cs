@@ -42,7 +42,7 @@ namespace UTSTwitchIntegration
                 ConfigManager.Initialize();
                 ModConfiguration config = ConfigManager.GetConfiguration();
                 Logger.SetLogLevel((LogLevel)config.LogLevel);
-                Logger.Info("Configuration loaded");
+                Logger.Debug("Configuration loaded");
                 Logger.Debug($"Twitch integration enabled: {config.Enabled}");
 
                 if (config.EnablePredefinedNames)
@@ -68,7 +68,7 @@ namespace UTSTwitchIntegration
             {
                 this.harmony = new HarmonyLib.Harmony(HARMONY_ID);
                 this.harmony.PatchAll();
-                Logger.Info("Harmony patches applied successfully");
+                Logger.Debug("Harmony patches applied successfully");
             }
             catch (System.Exception ex)
             {
@@ -219,7 +219,7 @@ namespace UTSTwitchIntegration
                         if (queued)
                         {
                             string spawnMode = config.EnableImmediateSpawn ? "immediate spawn" : "pool";
-                            Logger.Info($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {this.spawnManager.QueueCount})");
+                            Logger.Debug($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {this.spawnManager.QueueCount})");
                         }
                         else
                         {

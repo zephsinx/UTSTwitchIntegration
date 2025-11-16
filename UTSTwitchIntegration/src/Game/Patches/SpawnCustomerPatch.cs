@@ -15,13 +15,13 @@ namespace UTSTwitchIntegration.Game.Patches
     public class SpawnCustomerPatch
     {
         private static int spawnCount;
+        /// <summary>
+        /// Tracks processed spawns by Customer ID to prevent duplicate processing when the same customer spawns multiple times
+        /// </summary>
         private static readonly ConcurrentDictionary<int, byte> ProcessedSpawns = new ConcurrentDictionary<int, byte>();
         private static volatile float lastCleanupTime;
         private static readonly object CleanupLock = new object();
 
-        /// <summary>
-        /// Cleanup interval in seconds
-        /// </summary>
         private const float CLEANUP_INTERVAL = 5f;
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace UTSTwitchIntegration.Game.Patches
                         return;
 
                     spawnManager.StoreViewerUsername(__result, username);
-                    ModLogger.Info($"Assigned Twitch username '{username}' to Customer ID={customerId}");
+                    ModLogger.Debug($"Assigned Twitch username '{username}' to Customer ID={customerId}");
 
                     UsernameDisplayManager.CreateDisplay(__result, username);
                 }

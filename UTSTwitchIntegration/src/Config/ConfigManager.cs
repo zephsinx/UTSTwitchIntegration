@@ -150,7 +150,7 @@ namespace UTSTwitchIntegration.Config
                 // Log configuration summary
                 LogConfigurationSummary();
 
-                Logger.Info("Configuration system initialized");
+                Logger.Debug("Configuration system initialized");
                 Logger.Debug("Config file location: UserData/UTSTwitchIntegration.cfg");
 
                 MelonPreferences.Save();
@@ -368,9 +368,9 @@ namespace UTSTwitchIntegration.Config
         {
             ModConfiguration modConfiguration = GetConfiguration();
 
-            Logger.Info("=== Configuration Summary ===");
-            Logger.Info($"Log Level: {GetLogLevelName(modConfiguration.LogLevel)}");
-            Logger.Info($"Enabled: {modConfiguration.Enabled}");
+            Logger.Debug("=== Configuration Summary ===");
+            Logger.Debug($"Log Level: {GetLogLevelName(modConfiguration.LogLevel)}");
+            Logger.Debug($"Enabled: {modConfiguration.Enabled}");
 
             if (modConfiguration.Enabled)
             {
@@ -380,28 +380,28 @@ namespace UTSTwitchIntegration.Config
                         ? modConfiguration.OAuthToken[..4] + "..." + modConfiguration.OAuthToken[^4..]
                         : "***";
 
-                Logger.Info($"OAuth Token: {maskedToken}");
-                Logger.Info($"Channel Name: {(string.IsNullOrWhiteSpace(modConfiguration.ChannelName) ? "(not set)" : modConfiguration.ChannelName)}");
-                Logger.Info($"Command Prefix: '{modConfiguration.CommandPrefix}'");
-                Logger.Info($"Visit Command: '{modConfiguration.VisitCommandName}'");
-                Logger.Info($"Permission Level: {modConfiguration.VisitPermission} ({GetPermissionLevelName(modConfiguration.VisitPermission)})");
+                Logger.Debug($"OAuth Token: {maskedToken}");
+                Logger.Debug($"Channel Name: {(string.IsNullOrWhiteSpace(modConfiguration.ChannelName) ? "(not set)" : modConfiguration.ChannelName)}");
+                Logger.Debug($"Command Prefix: '{modConfiguration.CommandPrefix}'");
+                Logger.Debug($"Visit Command: '{modConfiguration.VisitCommandName}'");
+                Logger.Debug($"Permission Level: {modConfiguration.VisitPermission} ({GetPermissionLevelName(modConfiguration.VisitPermission)})");
 
                 string spawnMode = modConfiguration.EnableImmediateSpawn ? "Immediate Spawn" : "Pool Mode";
-                Logger.Info($"Spawn Mode: {spawnMode}");
+                Logger.Debug($"Spawn Mode: {spawnMode}");
 
                 if (!modConfiguration.EnableImmediateSpawn)
                 {
-                    Logger.Info($"Max Pool Size: {(modConfiguration.MaxPoolSize == 0 ? "Unlimited" : modConfiguration.MaxPoolSize.ToString())}");
-                    Logger.Info($"Pool Timeout: {(modConfiguration.PoolTimeoutSeconds == 0 ? "None" : $"{modConfiguration.PoolTimeoutSeconds} seconds")}");
+                    Logger.Debug($"Max Pool Size: {(modConfiguration.MaxPoolSize == 0 ? "Unlimited" : modConfiguration.MaxPoolSize.ToString())}");
+                    Logger.Debug($"Pool Timeout: {(modConfiguration.PoolTimeoutSeconds == 0 ? "None" : $"{modConfiguration.PoolTimeoutSeconds} seconds")}");
                 }
 
                 string selectionMethodName = modConfiguration.SelectionMethod == QueueSelectionMethod.Random ? "Random" : "FIFO";
-                Logger.Info($"Queue Selection Method: {selectionMethodName}");
-                Logger.Info($"User Cooldown: {(modConfiguration.UserCooldownSeconds == 0 ? "Disabled" : $"{modConfiguration.UserCooldownSeconds} seconds")}");
-                Logger.Info($"Predefined Names: {(modConfiguration.EnablePredefinedNames ? $"Enabled ({modConfiguration.PredefinedNamesFilePath})" : "Disabled")}");
+                Logger.Debug($"Queue Selection Method: {selectionMethodName}");
+                Logger.Debug($"User Cooldown: {(modConfiguration.UserCooldownSeconds == 0 ? "Disabled" : $"{modConfiguration.UserCooldownSeconds} seconds")}");
+                Logger.Debug($"Predefined Names: {(modConfiguration.EnablePredefinedNames ? $"Enabled ({modConfiguration.PredefinedNamesFilePath})" : "Disabled")}");
             }
 
-            Logger.Info("============================");
+            Logger.Debug("============================");
         }
 
         private static string GetPermissionLevelName(PermissionLevel level)
