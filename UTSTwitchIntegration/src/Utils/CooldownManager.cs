@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Concurrent;
 
@@ -9,12 +8,7 @@ namespace UTSTwitchIntegration.Utils
     /// </summary>
     public class CooldownManager
     {
-        private readonly ConcurrentDictionary<string, DateTime> _lastCommandTime;
-
-        public CooldownManager()
-        {
-            _lastCommandTime = new ConcurrentDictionary<string, DateTime>();
-        }
+        private readonly ConcurrentDictionary<string, DateTime> lastCommandTime = new ConcurrentDictionary<string, DateTime>();
 
         /// <summary>
         /// Check if a user is currently on cooldown
@@ -35,7 +29,7 @@ namespace UTSTwitchIntegration.Utils
 
             string normalizedUsername = username.ToLowerInvariant();
 
-            if (!_lastCommandTime.TryGetValue(normalizedUsername, out DateTime lastTime))
+            if (!this.lastCommandTime.TryGetValue(normalizedUsername, out DateTime lastTime))
             {
                 return false;
             }
@@ -56,7 +50,7 @@ namespace UTSTwitchIntegration.Utils
             }
 
             string normalizedUsername = username.ToLowerInvariant();
-            _lastCommandTime.AddOrUpdate(normalizedUsername, DateTime.Now, (key, oldValue) => DateTime.Now);
+            this.lastCommandTime.AddOrUpdate(normalizedUsername, DateTime.Now, (key, oldValue) => DateTime.Now);
         }
 
         /// <summary>
@@ -73,7 +67,7 @@ namespace UTSTwitchIntegration.Utils
 
             string normalizedUsername = username.ToLowerInvariant();
 
-            if (!_lastCommandTime.TryGetValue(normalizedUsername, out DateTime lastTime))
+            if (!this.lastCommandTime.TryGetValue(normalizedUsername, out DateTime lastTime))
             {
                 return 0;
             }
@@ -82,29 +76,6 @@ namespace UTSTwitchIntegration.Utils
             double remaining = cooldownSeconds - timeSinceLastCommand.TotalSeconds;
 
             return remaining > 0 ? remaining : 0;
-        }
-
-        /// <summary>
-        /// Clear cooldown for a specific user
-        /// </summary>
-        /// <param name="username">Twitch username (case-insensitive)</param>
-        public void ClearCooldown(string username)
-        {
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                return;
-            }
-
-            string normalizedUsername = username.ToLowerInvariant();
-            _lastCommandTime.TryRemove(normalizedUsername, out _);
-        }
-
-        /// <summary>
-        /// Clear all cooldowns
-        /// </summary>
-        public void ClearAllCooldowns()
-        {
-            _lastCommandTime.Clear();
         }
     }
 }

@@ -1,4 +1,3 @@
-#nullable disable
 using MelonLoader;
 using Il2CppInterop.Runtime.Injection;
 using UTSTwitchIntegration.Config;
@@ -11,16 +10,15 @@ using UTSTwitchIntegration.Utils;
 
 namespace UTSTwitchIntegration
 {
-
     public class Plugin : MelonMod
     {
-        public static readonly LogLevel LOG_LEVEL = LogLevel.Info;
+        private const LogLevel LOG_LEVEL = LogLevel.Info;
 
-        private HarmonyLib.Harmony _harmony;
+        private HarmonyLib.Harmony harmony;
         private const string HARMONY_ID = "com.uts.twitch-integration";
-        private TwitchClientManager _twitchClient;
-        private SpawnManager _spawnManager;
-        private CooldownManager _cooldownManager;
+        private TwitchClientManager twitchClient;
+        private SpawnManager spawnManager;
+        private CooldownManager cooldownManager;
 
         public override void OnInitializeMelon()
         {
@@ -69,8 +67,8 @@ namespace UTSTwitchIntegration
 
             try
             {
-                _harmony = new HarmonyLib.Harmony(HARMONY_ID);
-                _harmony.PatchAll();
+                this.harmony = new HarmonyLib.Harmony(HARMONY_ID);
+                this.harmony.PatchAll();
                 Logger.Info("Harmony patches applied successfully");
             }
             catch (System.Exception ex)
@@ -81,7 +79,7 @@ namespace UTSTwitchIntegration
 
             try
             {
-                _spawnManager = SpawnManager.Instance;
+                this.spawnManager = SpawnManager.Instance;
                 ModConfiguration config = ConfigManager.GetConfiguration();
                 string spawnMode = config.EnableImmediateSpawn ? "immediate spawn mode" : "pool mode";
                 Logger.Info($"Spawn manager initialized ({spawnMode})");
@@ -94,7 +92,7 @@ namespace UTSTwitchIntegration
 
             try
             {
-                _cooldownManager = new CooldownManager();
+                this.cooldownManager = new CooldownManager();
                 Logger.Debug("Cooldown manager initialized");
             }
             catch (System.Exception ex)
@@ -108,9 +106,9 @@ namespace UTSTwitchIntegration
                 ModConfiguration config = ConfigManager.GetConfiguration();
                 if (config.Enabled)
                 {
-                    _twitchClient = new TwitchClientManager(config);
-                    _twitchClient.OnCommandReceived += OnCommandReceived;
-                    _twitchClient.Connect();
+                    this.twitchClient = new TwitchClientManager(config);
+                    this.twitchClient.OnCommandReceived += OnCommandReceived;
+                    this.twitchClient.Connect();
                 }
                 else
                 {
@@ -126,16 +124,16 @@ namespace UTSTwitchIntegration
 
         public override void OnUpdate()
         {
-            if (_twitchClient != null)
+            if (this.twitchClient != null)
             {
-                _twitchClient.ProcessMainThreadActions();
-                _twitchClient.CheckAndProcessReconnect();
+                this.twitchClient.ProcessMainThreadActions();
+                this.twitchClient.CheckAndProcessReconnect();
             }
 
             ModConfiguration config = ConfigManager.GetConfiguration();
             if (config.EnableImmediateSpawn)
             {
-                _spawnManager?.TrySpawnNextViewer();
+                this.spawnManager?.TrySpawnNextViewer();
             }
         }
 
@@ -143,11 +141,11 @@ namespace UTSTwitchIntegration
         {
             Logger.Info("Starting mod cleanup...");
 
-            if (_spawnManager != null)
+            if (this.spawnManager != null)
             {
                 try
                 {
-                    _spawnManager.Cleanup();
+                    this.spawnManager.Cleanup();
                     Logger.Debug("Spawn manager cleanup completed");
                 }
                 catch (System.Exception ex)
@@ -156,12 +154,12 @@ namespace UTSTwitchIntegration
                 }
             }
 
-            if (_twitchClient != null)
+            if (this.twitchClient != null)
             {
                 try
                 {
-                    _twitchClient.Cleanup();
-                    _twitchClient = null;
+                    this.twitchClient.Cleanup();
+                    this.twitchClient = null;
                     Logger.Debug("Twitch client cleanup completed");
                 }
                 catch (System.Exception ex)
@@ -180,11 +178,11 @@ namespace UTSTwitchIntegration
                 Logger.Error($"Error cleaning up username displays: {ex.Message}");
             }
 
-            if (_harmony != null)
+            if (this.harmony != null)
             {
                 try
                 {
-                    _harmony.UnpatchSelf();
+                    this.harmony.UnpatchSelf();
                     Logger.Debug("Harmony patches removed");
                 }
                 catch (System.Exception ex)
@@ -204,23 +202,23 @@ namespace UTSTwitchIntegration
                 if (command.CommandName.Equals(config.VisitCommandName, System.StringComparison.OrdinalIgnoreCase))
                 {
                     // Check cooldown before processing command
-                    if (_cooldownManager != null && _cooldownManager.IsOnCooldown(command.Username, config.UserCooldownSeconds))
+                    if (this.cooldownManager != null && this.cooldownManager.IsOnCooldown(command.Username, config.UserCooldownSeconds))
                     {
-                        double remainingCooldown = _cooldownManager.GetRemainingCooldown(command.Username, config.UserCooldownSeconds);
+                        double remainingCooldown = this.cooldownManager.GetRemainingCooldown(command.Username, config.UserCooldownSeconds);
                         Logger.Debug($"Viewer '{command.Username}' is on cooldown ({remainingCooldown:F1} seconds remaining)");
                         return;
                     }
 
-                    if (_spawnManager != null)
+                    if (this.spawnManager != null)
                     {
-                        bool queued = _spawnManager.QueueViewerForSpawn(command.Username, command.UserRole);
+                        bool queued = this.spawnManager.QueueViewerForSpawn(command.Username);
 
-                        _cooldownManager?.RecordCommandUsage(command.Username);
+                        this.cooldownManager?.RecordCommandUsage(command.Username);
 
                         if (queued)
                         {
                             string spawnMode = config.EnableImmediateSpawn ? "immediate spawn" : "pool";
-                            Logger.Info($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {_spawnManager.QueueCount})");
+                            Logger.Info($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {this.spawnManager.QueueCount})");
                         }
                         else
                         {

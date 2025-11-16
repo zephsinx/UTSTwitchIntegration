@@ -1,8 +1,6 @@
-#nullable disable
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Models;
 
 namespace UTSTwitchIntegration.Queue
@@ -12,27 +10,20 @@ namespace UTSTwitchIntegration.Queue
     /// </summary>
     public class ViewerQueue
     {
-        private readonly ConcurrentQueue<ViewerInfo> _queue;
-        private readonly HashSet<string> _usernamesInQueue;
+        private readonly ConcurrentQueue<ViewerInfo> queue = new ConcurrentQueue<ViewerInfo>();
+        private readonly HashSet<string> usernamesInQueue = new HashSet<string>();
 
         /// <summary>
         /// Number of viewers currently in queue
         /// </summary>
-        public int Count => _queue.Count;
-
-        public ViewerQueue()
-        {
-            _queue = new ConcurrentQueue<ViewerInfo>();
-            _usernamesInQueue = new HashSet<string>();
-        }
+        public int Count => this.queue.Count;
 
         /// <summary>
         /// Add a viewer to the queue
         /// </summary>
         /// <param name="username">Twitch username</param>
-        /// <param name="role">User's permission level</param>
         /// <returns>True if added, false if already in queue</returns>
-        public bool Enqueue(string username, PermissionLevel role)
+        public bool Enqueue(string username)
         {
             if (string.IsNullOrWhiteSpace(username))
             {
@@ -41,23 +32,23 @@ namespace UTSTwitchIntegration.Queue
 
             string normalizedUsername = username.ToLowerInvariant();
 
-            lock (_usernamesInQueue)
+            lock (this.usernamesInQueue)
             {
-                if (_usernamesInQueue.Contains(normalizedUsername))
+                if (this.usernamesInQueue.Contains(normalizedUsername))
                 {
-                    return false; // Already in queue
+                    return false;
                 }
 
                 try
                 {
-                    ViewerInfo viewerInfo = new ViewerInfo(username, role);
-                    _queue.Enqueue(viewerInfo);
-                    _usernamesInQueue.Add(normalizedUsername);
+                    ViewerInfo viewerInfo = new ViewerInfo(username);
+                    this.queue.Enqueue(viewerInfo);
+                    this.usernamesInQueue.Add(normalizedUsername);
                     return true;
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
-                    _usernamesInQueue.Remove(normalizedUsername);
+                    this.usernamesInQueue.Remove(normalizedUsername);
                     throw;
                 }
             }
@@ -69,34 +60,33 @@ namespace UTSTwitchIntegration.Queue
         /// <returns>ViewerInfo if available, null if queue is empty</returns>
         public ViewerInfo Dequeue()
         {
-            if (_queue.TryDequeue(out ViewerInfo viewer))
+            if (!this.queue.TryDequeue(out ViewerInfo viewer))
+                return null;
+
+            lock (this.usernamesInQueue)
             {
-                lock (_usernamesInQueue)
-                {
-                    if (viewer != null && !string.IsNullOrWhiteSpace(viewer.Username))
-                    {
-                        string normalizedUsername = viewer.Username.ToLowerInvariant();
-                        _usernamesInQueue.Remove(normalizedUsername);
-                    }
-                }
-                return viewer;
+                if (viewer == null || string.IsNullOrWhiteSpace(viewer.Username))
+                    return viewer;
+
+                string normalizedUsername = viewer.Username.ToLowerInvariant();
+                this.usernamesInQueue.Remove(normalizedUsername);
             }
 
-            return null;
+            return viewer;
         }
 
         public ViewerInfo DequeueRandom()
         {
             // TODO: Make random selection more efficient
-            lock (_usernamesInQueue)
+            lock (this.usernamesInQueue)
             {
-                if (_queue.Count == 0)
+                if (this.queue.Count == 0)
                 {
                     return null;
                 }
 
                 List<ViewerInfo> viewers = new List<ViewerInfo>();
-                while (_queue.TryDequeue(out ViewerInfo viewer))
+                while (this.queue.TryDequeue(out ViewerInfo viewer))
                 {
                     viewers.Add(viewer);
                 }
@@ -114,36 +104,17 @@ namespace UTSTwitchIntegration.Queue
 
                 foreach (ViewerInfo viewer in viewers)
                 {
-                    _queue.Enqueue(viewer);
+                    this.queue.Enqueue(viewer);
                 }
 
                 // Remove selected viewer from tracking set
-                if (selectedViewer != null && !string.IsNullOrWhiteSpace(selectedViewer.Username))
-                {
-                    string normalizedUsername = selectedViewer.Username.ToLowerInvariant();
-                    _usernamesInQueue.Remove(normalizedUsername);
-                }
+                if (selectedViewer == null || string.IsNullOrWhiteSpace(selectedViewer.Username))
+                    return selectedViewer;
+
+                string normalizedUsername = selectedViewer.Username.ToLowerInvariant();
+                this.usernamesInQueue.Remove(normalizedUsername);
 
                 return selectedViewer;
-            }
-        }
-
-        /// <summary>
-        /// Check if a username is already in the queue
-        /// </summary>
-        /// <param name="username">Username to check</param>
-        /// <returns>True if username is in queue</returns>
-        public bool Contains(string username)
-        {
-            if (string.IsNullOrWhiteSpace(username))
-            {
-                return false;
-            }
-
-            string normalizedUsername = username.ToLowerInvariant();
-            lock (_usernamesInQueue)
-            {
-                return _usernamesInQueue.Contains(normalizedUsername);
             }
         }
 
@@ -152,15 +123,14 @@ namespace UTSTwitchIntegration.Queue
         /// </summary>
         public void Clear()
         {
-            while (_queue.TryDequeue(out _))
+            while (this.queue.TryDequeue(out _))
             {
             }
 
-            lock (_usernamesInQueue)
+            lock (this.usernamesInQueue)
             {
-                _usernamesInQueue.Clear();
+                this.usernamesInQueue.Clear();
             }
         }
     }
 }
-

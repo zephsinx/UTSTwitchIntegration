@@ -1,4 +1,3 @@
-#nullable disable
 using System.Linq;
 using TwitchLib.Client.Models;
 using UTSTwitchIntegration.Config;
@@ -45,22 +44,22 @@ namespace UTSTwitchIntegration.Twitch
                 return PermissionLevel.Broadcaster;
             }
 
-            if (message.Badges != null && message.Badges.Count > 0)
+            if (message.Badges == null || message.Badges.Count <= 0)
+                return PermissionLevel.Everyone;
+
+            if (message.Badges.Any(b => b.Key == "moderator") || message.IsModerator)
             {
-                if (message.Badges.Any(b => b.Key == "moderator") || message.IsModerator)
-                {
-                    return PermissionLevel.Moderator;
-                }
+                return PermissionLevel.Moderator;
+            }
 
-                if (message.Badges.Any(b => b.Key == "vip"))
-                {
-                    return PermissionLevel.VIP;
-                }
+            if (message.Badges.Any(b => b.Key == "vip"))
+            {
+                return PermissionLevel.Vip;
+            }
 
-                if (message.Badges.Any(b => b.Key == "subscriber") || message.IsSubscriber)
-                {
-                    return PermissionLevel.Subscriber;
-                }
+            if (message.Badges.Any(b => b.Key == "subscriber") || message.IsSubscriber)
+            {
+                return PermissionLevel.Subscriber;
             }
 
             return PermissionLevel.Everyone;
@@ -75,10 +74,10 @@ namespace UTSTwitchIntegration.Twitch
             {
                 PermissionLevel.Everyone => "Everyone",
                 PermissionLevel.Subscriber => "Subscriber",
-                PermissionLevel.VIP => "VIP",
+                PermissionLevel.Vip => "VIP",
                 PermissionLevel.Moderator => "Moderator",
                 PermissionLevel.Broadcaster => "Broadcaster",
-                _ => "Unknown"
+                _ => "Unknown",
             };
         }
     }

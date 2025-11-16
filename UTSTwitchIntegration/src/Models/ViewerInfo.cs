@@ -1,6 +1,4 @@
-#nullable disable
 using System;
-using UTSTwitchIntegration.Config;
 
 namespace UTSTwitchIntegration.Models
 {
@@ -12,29 +10,11 @@ namespace UTSTwitchIntegration.Models
         /// <summary>
         /// Twitch username of the viewer
         /// </summary>
-        public string Username { get; set; }
+        public string Username { get; }
 
-        /// <summary>
-        /// Timestamp when viewer was added to queue
-        /// </summary>
-        public DateTime Timestamp { get; set; }
-
-        /// <summary>
-        /// User's permission level
-        /// </summary>
-        public PermissionLevel UserRole { get; set; }
-
-        public ViewerInfo()
-        {
-            Timestamp = DateTime.Now;
-        }
-
-        public ViewerInfo(string username, PermissionLevel userRole)
+        public ViewerInfo(string username)
         {
             Username = username ?? throw new ArgumentNullException(nameof(username));
-            UserRole = userRole;
-            Timestamp = DateTime.Now;
         }
     }
 }
-

@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Linq;
 using TwitchLib.Client.Models;
@@ -13,11 +12,11 @@ namespace UTSTwitchIntegration.Twitch
     /// </summary>
     public class CommandParser
     {
-        private readonly ModConfiguration _config;
+        private readonly ModConfiguration config;
 
         public CommandParser(ModConfiguration config)
         {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
+            this.config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <summary>
@@ -34,12 +33,12 @@ namespace UTSTwitchIntegration.Twitch
 
             string messageText = message.Message.Trim();
 
-            if (!messageText.StartsWith(_config.CommandPrefix, StringComparison.OrdinalIgnoreCase))
+            if (!messageText.StartsWith(this.config.CommandPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 return null;
             }
 
-            string commandPart = messageText.Substring(_config.CommandPrefix.Length).Trim();
+            string commandPart = messageText[this.config.CommandPrefix.Length..].Trim();
             if (string.IsNullOrWhiteSpace(commandPart))
             {
                 return null;
@@ -48,9 +47,9 @@ namespace UTSTwitchIntegration.Twitch
             string[] parts = commandPart.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             string commandName = parts[0].ToLowerInvariant();
 
-            string[] arguments = parts.Length > 1 ? parts.Skip(1).ToArray() : new string[0];
+            string[] arguments = parts.Length > 1 ? parts.Skip(1).ToArray() : Array.Empty<string>();
 
-            if (commandName.Equals(_config.VisitCommandName, StringComparison.OrdinalIgnoreCase))
+            if (commandName.Equals(this.config.VisitCommandName, StringComparison.OrdinalIgnoreCase))
             {
                 return new TwitchCommand
                 {
@@ -58,8 +57,6 @@ namespace UTSTwitchIntegration.Twitch
                     Username = message.Username,
                     Arguments = arguments,
                     UserRole = PermissionManager.CheckUserRole(message),
-                    Timestamp = DateTime.Now,
-                    OriginalMessage = messageText
                 };
             }
 

@@ -74,11 +74,10 @@ Important Settings:
 -------------------
 OAuthToken           - Your Twitch OAuth token (optional, recommended)
 ChannelName          - Your Twitch channel name (REQUIRED)
-Enabled              - Set to false to disable the mod (default: true)
+Enabled              - Set to `false` to disable the mod (default: true)
 
 Spawn Settings:
 ---------------
-UsePoolMode          - Use pool-based spawning (default: true)
 EnableImmediateSpawn - Spawn NPCs immediately (default: false)
 MaxPoolSize          - Max viewers in pool, 0 = unlimited (default: 300)
 SelectionMethod      - 0=Random, 1=FIFO (default: 0)

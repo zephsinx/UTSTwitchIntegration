@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using MelonLoader;
 
@@ -12,56 +11,51 @@ namespace UTSTwitchIntegration.Utils
         Error = 0,
         Warning = 1,
         Info = 2,
-        Debug = 3
+        Debug = 3,
     }
 
     public static class Logger
     {
-        private static MelonLogger.Instance _logger;
-        private static LogLevel _currentLogLevel = LogLevel.Info;
+        private static MelonLogger.Instance logger;
+        private static LogLevel currentLogLevel = LogLevel.Info;
 
-        public static void Initialize(MelonLogger.Instance logger)
+        public static void Initialize(MelonLogger.Instance loggerInstance)
         {
-            _logger = logger;
+            logger = loggerInstance;
         }
 
         public static void SetLogLevel(LogLevel level)
         {
-            _currentLogLevel = level;
-        }
-
-        public static LogLevel GetLogLevel()
-        {
-            return _currentLogLevel;
+            currentLogLevel = level;
         }
 
         public static void Debug(string message)
         {
-            if (_currentLogLevel >= LogLevel.Debug)
+            if (currentLogLevel >= LogLevel.Debug)
             {
-                _logger?.Msg($"[DEBUG] {message}");
+                logger?.Msg($"[DEBUG] {message}");
             }
         }
 
         public static void Info(string message)
         {
-            if (_currentLogLevel >= LogLevel.Info)
+            if (currentLogLevel >= LogLevel.Info)
             {
-                _logger?.Msg($"[INFO] {message}");
+                logger?.Msg($"[INFO] {message}");
             }
         }
 
         public static void Warning(string message)
         {
-            if (_currentLogLevel >= LogLevel.Warning)
+            if (currentLogLevel >= LogLevel.Warning)
             {
-                _logger?.Warning($"[WARNING] {message}");
+                logger?.Warning($"[WARNING] {message}");
             }
         }
 
         public static void Error(string message)
         {
-            _logger?.Error($"[ERROR] {message}");
+            logger?.Error($"[ERROR] {message}");
         }
 
         public static void Success(string message)
@@ -70,7 +64,7 @@ namespace UTSTwitchIntegration.Utils
             try
             {
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                _logger?.Msg($"[✓ SUCCESS] {message}");
+                logger?.Msg($"[✓ SUCCESS] {message}");
             }
             finally
             {

@@ -128,7 +128,6 @@ CommandPrefix = "!"
 VisitCommandName = "visit"
 VisitPermission = 0
 Enabled = true
-UsePoolMode = true
 EnableImmediateSpawn = false
 MaxPoolSize = 300
 PoolTimeoutSeconds = 300

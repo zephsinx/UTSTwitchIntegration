@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Generic;
 using UnityEngine;
 using Il2CppTMPro;
@@ -24,13 +23,13 @@ namespace UTSTwitchIntegration.Game
         /// <summary>
         /// Cached font asset for fallback (Atma-Regular SDF)
         /// </summary>
-        private static TMP_FontAsset _cachedAtmaFont = null;
+        private static TMP_FontAsset cachedAtmaFont;
 
         /// <summary>
         /// Track all created displays for cleanup
         /// </summary>
-        private static readonly List<GameObject> _activeDisplays = new List<GameObject>();
-        private static readonly object _displaysLock = new object();
+        private static readonly List<GameObject> ActiveDisplays = new List<GameObject>();
+        private static readonly object DisplaysLock = new object();
 
         /// <summary>
         /// Create a new canvas GameObject for username display
@@ -40,25 +39,25 @@ namespace UTSTwitchIntegration.Game
         /// <returns>Created canvas GameObject, or null if creation failed</returns>
         private static GameObject CreateNewCanvas(CustomerController customer, string username)
         {
-            GameObject canvasGO = new GameObject($"TwitchUsernameCanvas_{username}");
-            canvasGO.transform.SetParent(customer.transform, false);
-            canvasGO.transform.localPosition = new Vector3(0, Y_OFFSET, 0);
-            canvasGO.SetActive(true);
+            GameObject canvasGo = new GameObject($"TwitchUsernameCanvas_{username}");
+            canvasGo.transform.SetParent(customer.transform, false);
+            canvasGo.transform.localPosition = new Vector3(0, Y_OFFSET, 0);
+            canvasGo.SetActive(true);
 
-            Canvas canvas = canvasGO.AddComponent<Canvas>();
+            Canvas canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
             canvas.sortingOrder = SORTING_ORDER;
 
             // Scale canvas for readable text at world space distance
-            canvasGO.transform.localScale = new Vector3(CANVAS_SCALE, CANVAS_SCALE, CANVAS_SCALE);
+            canvasGo.transform.localScale = new Vector3(CANVAS_SCALE, CANVAS_SCALE, CANVAS_SCALE);
 
-            RectTransform canvasRect = canvasGO.GetComponent<RectTransform>();
-            if (canvasRect != null)
+            RectTransform canvasRect = canvasGo.GetComponent<RectTransform>();
+            if (canvasRect)
             {
                 canvasRect.sizeDelta = new Vector2(CANVAS_WIDTH, CANVAS_HEIGHT);
             }
 
-            return canvasGO;
+            return canvasGo;
         }
 
         /// <summary>
@@ -67,52 +66,52 @@ namespace UTSTwitchIntegration.Game
         /// <param name="customer">Customer to attach display to</param>
         /// <param name="username">Twitch username to display</param>
         /// <returns>Created canvas GameObject, or null if creation failed</returns>
-        public static GameObject CreateDisplay(CustomerController customer, string username)
+        public static void CreateDisplay(CustomerController customer, string username)
         {
-            if (customer == null)
+            if (!customer)
             {
                 ModLogger.Warning("Cannot create username display: customer is null");
-                return null;
+                return;
             }
 
-            if (customer.transform == null)
+            if (!customer.transform)
             {
                 ModLogger.Warning("Cannot create username display: customer.transform is null");
-                return null;
+                return;
             }
 
             if (string.IsNullOrWhiteSpace(username))
             {
                 ModLogger.Warning("Cannot create username display: username is null or empty");
-                return null;
+                return;
             }
 
             try
             {
-                if (customer.gameObject == null || !customer.gameObject.activeInHierarchy)
+                if (!customer.gameObject || !customer.gameObject.activeInHierarchy)
                 {
                     ModLogger.Warning($"Cannot create display for '{username}': customer GameObject is inactive");
-                    return null;
+                    return;
                 }
 
-                if (Camera.main == null)
+                if (!Camera.main)
                 {
                     ModLogger.Warning($"Cannot create display for '{username}': Camera.main is null");
-                    return null;
+                    return;
                 }
 
-                GameObject canvasGO = CreateNewCanvas(customer, username);
-                if (canvasGO == null)
+                GameObject canvasGo = CreateNewCanvas(customer, username);
+                if (!canvasGo)
                 {
                     ModLogger.Warning($"Failed to create canvas for '{username}'");
-                    return null;
+                    return;
                 }
 
-                Canvas canvas = canvasGO.GetComponent<Canvas>();
+                canvasGo.GetComponent<Canvas>();
 
-                GameObject textGO = new GameObject($"UsernameText_{username}");
+                GameObject textGo = new GameObject($"UsernameText_{username}");
 
-                RectTransform textRect = textGO.GetComponent<RectTransform>();
+                RectTransform textRect = textGo.GetComponent<RectTransform>();
                 if (textRect != null)
                 {
                     textRect.sizeDelta = new Vector2(TEXT_WIDTH, TEXT_HEIGHT);
@@ -122,7 +121,7 @@ namespace UTSTwitchIntegration.Game
                     textRect.pivot = new Vector2(0.5f, 0.5f);
                 }
 
-                TextMeshProUGUI text = textGO.AddComponent<TextMeshProUGUI>();
+                TextMeshProUGUI text = textGo.AddComponent<TextMeshProUGUI>();
                 text.text = username;
                 text.fontSize = FONT_SIZE;
                 text.alignment = TextAlignmentOptions.Center;
@@ -136,7 +135,7 @@ namespace UTSTwitchIntegration.Game
                 else
                 {
                     TMP_FontAsset atmaFont = GetAtmaRegularFont();
-                    if (atmaFont != null)
+                    if (atmaFont)
                     {
                         text.font = atmaFont;
                     }
@@ -146,25 +145,22 @@ namespace UTSTwitchIntegration.Game
                     }
                 }
 
-                UsernameDisplayUpdater updater = canvasGO.AddComponent<UsernameDisplayUpdater>();
+                UsernameDisplayUpdater updater = canvasGo.AddComponent<UsernameDisplayUpdater>();
                 updater.Initialize(customer, Camera.main);
 
-                textGO.transform.SetParent(canvasGO.transform, false);
+                textGo.transform.SetParent(canvasGo.transform, false);
 
-                lock (_displaysLock)
+                lock (DisplaysLock)
                 {
-                    _activeDisplays.Add(canvasGO);
+                    ActiveDisplays.Add(canvasGo);
                 }
 
                 ModLogger.Debug($"Created username display for '{username}' on Customer ID={customer.CustomerId}");
-
-                return canvasGO;
             }
             catch (System.Exception ex)
             {
                 ModLogger.Error($"Failed to create username display for '{username}': {ex.Message}");
                 ModLogger.Debug($"Stack trace: {ex.StackTrace}");
-                return null;
             }
         }
 
@@ -175,30 +171,30 @@ namespace UTSTwitchIntegration.Game
         {
             try
             {
-                lock (_displaysLock)
+                lock (DisplaysLock)
                 {
                     int count = 0;
-                    foreach (GameObject display in _activeDisplays)
+                    foreach (GameObject display in ActiveDisplays)
                     {
-                        if (display != null)
+                        if (!display)
+                            continue;
+
+                        try
                         {
-                            try
-                            {
-                                Object.Destroy(display);
-                                count++;
-                            }
-                            catch (System.Exception ex)
-                            {
-                                ModLogger.Debug($"Error destroying display GameObject: {ex.Message}");
-                            }
+                            Object.Destroy(display);
+                            count++;
+                        }
+                        catch (System.Exception ex)
+                        {
+                            ModLogger.Debug($"Error destroying display GameObject: {ex.Message}");
                         }
                     }
 
-                    _activeDisplays.Clear();
+                    ActiveDisplays.Clear();
                     ModLogger.Debug($"Cleaned up {count} username displays");
                 }
 
-                _cachedAtmaFont = null;
+                cachedAtmaFont = null;
                 ModLogger.Info("Username display manager cleanup completed");
             }
             catch (System.Exception ex)
@@ -214,9 +210,9 @@ namespace UTSTwitchIntegration.Game
         /// <returns>Atma-Regular SDF font asset, or null if not found</returns>
         private static TMP_FontAsset GetAtmaRegularFont()
         {
-            if (_cachedAtmaFont != null)
+            if (cachedAtmaFont != null)
             {
-                return _cachedAtmaFont;
+                return cachedAtmaFont;
             }
 
             try
@@ -224,12 +220,12 @@ namespace UTSTwitchIntegration.Game
                 Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppArrayBase<TMP_FontAsset> allFontAssets = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
                 foreach (TMP_FontAsset font in allFontAssets)
                 {
-                    if (font != null && font.name == "Atma-Regular SDF")
-                    {
-                        _cachedAtmaFont = font;
-                        ModLogger.Debug("Found and cached Atma-Regular SDF font");
-                        return _cachedAtmaFont;
-                    }
+                    if (!font || font.name != "Atma-Regular SDF")
+                        continue;
+
+                    cachedAtmaFont = font;
+                    ModLogger.Debug("Found and cached Atma-Regular SDF font");
+                    return cachedAtmaFont;
                 }
 
                 ModLogger.Warning("Atma-Regular SDF font not found in Resources");

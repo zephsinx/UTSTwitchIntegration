@@ -1,4 +1,3 @@
-#nullable disable
 using HarmonyLib;
 using Il2CppGame.Shop;
 using Il2CppGame.Customers;
@@ -15,10 +14,10 @@ namespace UTSTwitchIntegration.Game.Patches
     [HarmonyPatch(typeof(TheaterController), nameof(TheaterController.SpawnCustomer))]
     public class SpawnCustomerPatch
     {
-        private static int _spawnCount = 0;
-        private static readonly ConcurrentDictionary<int, byte> _processedSpawns = new ConcurrentDictionary<int, byte>();
-        private static volatile float _lastCleanupTime = 0f;
-        private static readonly object _cleanupLock = new object();
+        private static int spawnCount;
+        private static readonly ConcurrentDictionary<int, byte> ProcessedSpawns = new ConcurrentDictionary<int, byte>();
+        private static volatile float lastCleanupTime;
+        private static readonly object CleanupLock = new object();
 
         /// <summary>
         /// Cleanup interval in seconds
@@ -28,85 +27,82 @@ namespace UTSTwitchIntegration.Game.Patches
         /// <summary>
         /// Postfix patch that runs after SpawnCustomer completes
         /// </summary>
-        static void Postfix(
-            TheaterController __instance,
-            Vector3 positionOverride,
-            Vector3 eulerOverride,
-            ref CustomerController __result)
+        static void Postfix(TheaterController instance, Vector3 positionOverride, Vector3 eulerOverride, ref CustomerController result)
         {
             try
             {
-                if (__result == null)
+                if (!result)
                 {
                     ModLogger.Warning("SpawnCustomer returned null");
                     return;
                 }
 
-                if (__instance == null)
+                if (!instance)
                 {
                     ModLogger.Warning("TheaterController instance is null in patch");
                     return;
                 }
 
-                if (__result.gameObject == null || !__result.gameObject.activeInHierarchy)
+                if (!result.gameObject || !result.gameObject.activeInHierarchy)
                 {
                     ModLogger.Warning("Customer GameObject is null or inactive");
                     return;
                 }
 
-                if (__result.transform == null)
+                if (!result.transform)
                 {
                     ModLogger.Warning("Customer transform is null");
                     return;
                 }
 
-                int customerId = __result.CustomerId;
+                int customerId = result.CustomerId;
 
-                if (!_processedSpawns.TryAdd(customerId, 0))
+                if (!ProcessedSpawns.TryAdd(customerId, 0))
                 {
                     ModLogger.Debug($"Skipping duplicate spawn event for Customer ID={customerId}");
                     return;
                 }
 
-                Interlocked.Increment(ref _spawnCount);
+                Interlocked.Increment(ref spawnCount);
 
                 float currentTime = Time.time;
-                float lastCleanup = _lastCleanupTime;
+                float lastCleanup = lastCleanupTime;
 
                 if (currentTime - lastCleanup > CLEANUP_INTERVAL)
                 {
-                    lock (_cleanupLock)
+                    lock (CleanupLock)
                     {
-                        if (currentTime - _lastCleanupTime > CLEANUP_INTERVAL)
+                        if (currentTime - lastCleanupTime > CLEANUP_INTERVAL)
                         {
-                            if (_processedSpawns.Count > 100)
+                            if (ProcessedSpawns.Count > 100)
                             {
-                                _processedSpawns.Clear();
+                                ProcessedSpawns.Clear();
                             }
-                            _lastCleanupTime = currentTime;
+
+                            lastCleanupTime = currentTime;
                         }
                     }
                 }
 
                 Vector3 actualPosition = Vector3.zero;
                 Vector3 actualRotation = Vector3.zero;
-                if (__result.transform != null)
+                if (result.transform)
                 {
-                    actualPosition = __result.transform.position;
-                    actualRotation = __result.transform.eulerAngles;
+                    actualPosition = result.transform.position;
+                    actualRotation = result.transform.eulerAngles;
                 }
 
-                ModLogger.Debug($"Customer spawned (#{_spawnCount}): " +
-                    $"ID={customerId}, " +
-                    $"OverridePos={positionOverride}, " +
-                    $"ActualPos={actualPosition}, " +
-                    $"OverrideRot={eulerOverride}, " +
-                    $"ActualRot={actualRotation}");
+                ModLogger.Debug($"Customer spawned (#{spawnCount}): " +
+                                $"ID={customerId}, " +
+                                $"OverridePos={positionOverride}, " +
+                                $"ActualPos={actualPosition}, " +
+                                $"OverrideRot={eulerOverride}, " +
+                                $"ActualRot={actualRotation}");
 
                 SpawnManager spawnManager = SpawnManager.Instance;
                 if (spawnManager != null)
                 {
-                    string username = null;
+                    string username;
 
                     string pendingUsername = SpawnManager.GetAndClearPendingUsername();
                     if (!string.IsNullOrEmpty(pendingUsername))
@@ -123,13 +119,13 @@ namespace UTSTwitchIntegration.Game.Patches
                         }
                     }
 
-                    if (!string.IsNullOrEmpty(username))
-                    {
-                        spawnManager.StoreViewerUsername(__result, username);
-                        ModLogger.Info($"Assigned Twitch username '{username}' to Customer ID={customerId}");
+                    if (string.IsNullOrEmpty(username))
+                        return;
 
-                        UsernameDisplayManager.CreateDisplay(__result, username);
-                    }
+                    spawnManager.StoreViewerUsername(result, username);
+                    ModLogger.Info($"Assigned Twitch username '{username}' to Customer ID={customerId}");
+
+                    UsernameDisplayManager.CreateDisplay(result, username);
                 }
                 else
                 {
@@ -144,4 +140,3 @@ namespace UTSTwitchIntegration.Game.Patches
         }
     }
 }
-
