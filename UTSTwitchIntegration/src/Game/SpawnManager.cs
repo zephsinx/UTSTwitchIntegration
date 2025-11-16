@@ -34,6 +34,9 @@ namespace UTSTwitchIntegration.Game
 
         private const float MIN_SPAWN_INTERVAL = 5f;
 
+        private bool hasLoggedTheaterControllerNullWarning = false;
+        private bool hasLoggedTheaterControllerInvalidWarning = false;
+
         /// <summary>
         /// Singleton instance of SpawnManager
         /// </summary>
@@ -157,8 +160,18 @@ namespace UTSTwitchIntegration.Game
             TheaterController theaterController = TheaterController.Instance;
             if (!theaterController)
             {
-                ModLogger.Warning("TheaterController.Instance is null - game may not be ready");
+                if (!this.hasLoggedTheaterControllerNullWarning)
+                {
+                    ModLogger.Warning("TheaterController.Instance is null - game may not be ready");
+                    this.hasLoggedTheaterControllerNullWarning = true;
+                }
                 return;
+            }
+
+            // Reset warning flag when TheaterController becomes available
+            if (this.hasLoggedTheaterControllerNullWarning)
+            {
+                this.hasLoggedTheaterControllerNullWarning = false;
             }
 
             try
@@ -167,8 +180,18 @@ namespace UTSTwitchIntegration.Game
             }
             catch
             {
-                ModLogger.Warning("TheaterController.Instance is destroyed or invalid");
+                if (!this.hasLoggedTheaterControllerInvalidWarning)
+                {
+                    ModLogger.Warning("TheaterController.Instance is destroyed or invalid");
+                    this.hasLoggedTheaterControllerInvalidWarning = true;
+                }
                 return;
+            }
+
+            // Reset warning flag when TheaterController is valid
+            if (this.hasLoggedTheaterControllerInvalidWarning)
+            {
+                this.hasLoggedTheaterControllerInvalidWarning = false;
             }
 
             ViewerInfo viewer = config.SelectionMethod == QueueSelectionMethod.Random

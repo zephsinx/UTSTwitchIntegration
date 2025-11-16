@@ -1,5 +1,6 @@
 using MelonLoader;
 using Il2CppInterop.Runtime.Injection;
+using Il2CppGame.Shop;
 using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Game;
 using UTSTwitchIntegration.Twitch;
@@ -133,7 +134,10 @@ namespace UTSTwitchIntegration
             ModConfiguration config = ConfigManager.GetConfiguration();
             if (config.EnableImmediateSpawn)
             {
-                this.spawnManager?.TrySpawnNextViewer();
+                if (TheaterController.Instance != null)
+                {
+                    this.spawnManager?.TrySpawnNextViewer();
+                }
             }
         }
 
