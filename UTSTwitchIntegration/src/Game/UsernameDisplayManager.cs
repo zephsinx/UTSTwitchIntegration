@@ -29,6 +29,7 @@ namespace UTSTwitchIntegration.Game
         /// Track all created displays for cleanup
         /// </summary>
         private static readonly List<GameObject> ActiveDisplays = new List<GameObject>();
+
         private static readonly object DisplaysLock = new object();
 
         /// <summary>
@@ -112,7 +113,7 @@ namespace UTSTwitchIntegration.Game
                 GameObject textGo = new GameObject($"UsernameText_{username}");
 
                 RectTransform textRect = textGo.GetComponent<RectTransform>();
-                if (textRect != null)
+                if (textRect)
                 {
                     textRect.sizeDelta = new Vector2(TEXT_WIDTH, TEXT_HEIGHT);
                     textRect.anchoredPosition = Vector2.zero;
@@ -128,7 +129,7 @@ namespace UTSTwitchIntegration.Game
                 text.color = Color.white;
                 text.enableWordWrapping = false;
 
-                if (customer._debugText != null && customer._debugText.font != null)
+                if (customer._debugText && customer._debugText.font)
                 {
                     text.font = customer._debugText.font;
                 }
@@ -210,7 +211,7 @@ namespace UTSTwitchIntegration.Game
         /// <returns>Atma-Regular SDF font asset, or null if not found</returns>
         private static TMP_FontAsset GetAtmaRegularFont()
         {
-            if (cachedAtmaFont != null)
+            if (cachedAtmaFont)
             {
                 return cachedAtmaFont;
             }
@@ -239,4 +240,3 @@ namespace UTSTwitchIntegration.Game
         }
     }
 }
-

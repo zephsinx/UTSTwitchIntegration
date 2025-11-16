@@ -27,35 +27,35 @@ namespace UTSTwitchIntegration.Game.Patches
         /// <summary>
         /// Postfix patch that runs after SpawnCustomer completes
         /// </summary>
-        static void Postfix(TheaterController instance, Vector3 positionOverride, Vector3 eulerOverride, ref CustomerController result)
+        static void Postfix(TheaterController __instance, Vector3 positionOverride, Vector3 eulerOverride, ref CustomerController __result)
         {
             try
             {
-                if (!result)
+                if (!__result)
                 {
                     ModLogger.Warning("SpawnCustomer returned null");
                     return;
                 }
 
-                if (!instance)
+                if (!__instance)
                 {
                     ModLogger.Warning("TheaterController instance is null in patch");
                     return;
                 }
 
-                if (!result.gameObject || !result.gameObject.activeInHierarchy)
+                if (!__result.gameObject || !__result.gameObject.activeInHierarchy)
                 {
                     ModLogger.Warning("Customer GameObject is null or inactive");
                     return;
                 }
 
-                if (!result.transform)
+                if (!__result.transform)
                 {
                     ModLogger.Warning("Customer transform is null");
                     return;
                 }
 
-                int customerId = result.CustomerId;
+                int customerId = __result.CustomerId;
 
                 if (!ProcessedSpawns.TryAdd(customerId, 0))
                 {
@@ -86,10 +86,10 @@ namespace UTSTwitchIntegration.Game.Patches
 
                 Vector3 actualPosition = Vector3.zero;
                 Vector3 actualRotation = Vector3.zero;
-                if (result.transform)
+                if (__result.transform)
                 {
-                    actualPosition = result.transform.position;
-                    actualRotation = result.transform.eulerAngles;
+                    actualPosition = __result.transform.position;
+                    actualRotation = __result.transform.eulerAngles;
                 }
 
                 ModLogger.Debug($"Customer spawned (#{spawnCount}): " +
@@ -122,10 +122,10 @@ namespace UTSTwitchIntegration.Game.Patches
                     if (string.IsNullOrEmpty(username))
                         return;
 
-                    spawnManager.StoreViewerUsername(result, username);
+                    spawnManager.StoreViewerUsername(__result, username);
                     ModLogger.Info($"Assigned Twitch username '{username}' to Customer ID={customerId}");
 
-                    UsernameDisplayManager.CreateDisplay(result, username);
+                    UsernameDisplayManager.CreateDisplay(__result, username);
                 }
                 else
                 {
