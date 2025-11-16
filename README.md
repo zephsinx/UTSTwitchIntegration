@@ -93,38 +93,6 @@ The mod generates a config file at `[Game Directory]/UserData/UTSTwitchIntegrati
 The post-build event will automatically copy the DLL to your game's `Mods` folder if the path exists. Modify it as
 needed.
 
-### Project Structure
-
-```plaintext
-UTSTwitchIntegration/
-├── src/
-│   ├── Plugin.cs                    # Main plugin entry point
-│   ├── Config/
-│   │   ├── ConfigManager.cs         # Configuration management
-│   │   ├── ConfigValidationResult.cs
-│   │   └── ModConfiguration.cs      # Configuration model
-│   ├── Game/
-│   │   ├── Patches/
-│   │   │   └── SpawnCustomerPatch.cs # Harmony patch for NPC spawning
-│   │   ├── SpawnManager.cs          # Manages viewer pool and spawning
-│   │   ├── UsernameDisplayManager.cs # Manages username displays
-│   │   └── UsernameDisplayUpdater.cs # Updates username positions
-│   ├── Models/
-│   │   ├── TwitchCommand.cs         # Command model
-│   │   └── ViewerInfo.cs            # Viewer data model
-│   ├── Queue/
-│   │   └── ViewerQueue.cs           # Thread-safe viewer queue
-│   ├── Twitch/
-│   │   ├── CommandParser.cs         # Parses chat commands
-│   │   ├── PermissionManager.cs     # Manages user permissions
-│   │   └── TwitchClientManager.cs   # Twitch IRC client
-│   └── Utils/
-│       ├── CooldownManager.cs       # Command cooldown tracking
-│       ├── Logger.cs                # Logging utilities
-│       └── PredefinedNamesManager.cs # Predefined names handling
-└── UTSTwitchIntegration.csproj
-```
-
 ## How It Works
 
 1. **Connection**: The mod connects to Twitch IRC using your OAuth token
