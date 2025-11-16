@@ -1,4 +1,3 @@
-#nullable disable
 using System.Collections.Concurrent;
 using Il2CppGame.Shop;
 using Il2CppGame.Customers;
@@ -16,22 +15,27 @@ namespace UTSTwitchIntegration.Game
     /// </summary>
     public class SpawnManager
     {
-        private static SpawnManager _instance;
-        private static readonly object _instanceLock = new object();
-        private readonly ViewerQueue _queue;
-        private readonly ConcurrentDictionary<CustomerController, string> _spawnedViewers;
+        private static SpawnManager instance;
+        private static readonly object InstanceLock = new object();
+        private readonly ViewerQueue queue;
+        private readonly ConcurrentDictionary<CustomerController, string> spawnedViewers;
 
         /// <summary>
         /// Flag to indicate a spawn is from SpawnManager
         /// </summary>
-        private static string _pendingUsername = null;
-        private static readonly object _pendingUsernameLock = new object();
+        private static string pendingUsername;
+
+        private static readonly object PendingUsernameLock = new object();
 
         /// <summary>
         /// Spawn rate limiting
         /// </summary>
-        private volatile float _lastSpawnTime = 0f;
+        private volatile float lastSpawnTime;
+
         private const float MIN_SPAWN_INTERVAL = 5f;
+
+        private bool hasLoggedTheaterControllerNullWarning = false;
+        private bool hasLoggedTheaterControllerInvalidWarning = false;
 
         /// <summary>
         /// Singleton instance of SpawnManager
@@ -40,42 +44,34 @@ namespace UTSTwitchIntegration.Game
         {
             get
             {
-                if (_instance == null)
+                if (instance != null)
+                    return instance;
+
+                lock (InstanceLock)
                 {
-                    lock (_instanceLock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new SpawnManager();
-                        }
-                    }
+                    instance ??= new SpawnManager();
                 }
-                return _instance;
+
+                return instance;
             }
         }
 
         /// <summary>
         /// Get the number of viewers in pool
         /// </summary>
-        public int QueueCount => _queue.Count;
-
-        /// <summary>
-        /// Get the number of spawned viewers
-        /// </summary>
-        public int SpawnedCount => _spawnedViewers.Count;
+        public int QueueCount => this.queue.Count;
 
         private SpawnManager()
         {
-            _queue = new ViewerQueue();
-            _spawnedViewers = new ConcurrentDictionary<CustomerController, string>();
+            this.queue = new ViewerQueue();
+            this.spawnedViewers = new ConcurrentDictionary<CustomerController, string>();
         }
 
         /// <summary>
         /// Add a viewer to the spawn queue
         /// </summary>
         /// <param name="username">Twitch username</param>
-        /// <param name="role">User's permission level</param>
-        public bool QueueViewerForSpawn(string username, PermissionLevel role)
+        public bool QueueViewerForSpawn(string username)
         {
             if (string.IsNullOrWhiteSpace(username))
             {
@@ -84,17 +80,17 @@ namespace UTSTwitchIntegration.Game
             }
 
             ModConfiguration config = ConfigManager.GetConfiguration();
-            if (config.MaxPoolSize > 0 && _queue.Count >= config.MaxPoolSize)
+            if (config.MaxPoolSize > 0 && this.queue.Count >= config.MaxPoolSize)
             {
                 ModLogger.Warning($"Pool is full (MaxPoolSize: {config.MaxPoolSize}), cannot add viewer '{username}'");
                 return false;
             }
 
-            bool added = _queue.Enqueue(username, role);
+            bool added = this.queue.Enqueue(username);
 
             if (added)
             {
-                ModLogger.Info($"Viewer '{username}' added to spawn pool (Pool size: {_queue.Count})");
+                ModLogger.Info($"Viewer '{username}' added to spawn pool (Pool size: {this.queue.Count})");
             }
             else
             {
@@ -114,13 +110,13 @@ namespace UTSTwitchIntegration.Game
 
             if (config.SelectionMethod == QueueSelectionMethod.Random)
             {
-                viewer = _queue.DequeueRandom();
-                ModLogger.Debug($"Retrieved username '{viewer?.Username}' from pool using Random selection (Pool size: {_queue.Count})");
+                viewer = this.queue.DequeueRandom();
+                ModLogger.Debug($"Retrieved username '{viewer?.Username}' from pool using Random selection (Pool size: {this.queue.Count})");
             }
             else
             {
-                viewer = _queue.Dequeue();
-                ModLogger.Debug($"Retrieved username '{viewer?.Username}' from pool using FIFO selection (Pool size: {_queue.Count})");
+                viewer = this.queue.Dequeue();
+                ModLogger.Debug($"Retrieved username '{viewer?.Username}' from pool using FIFO selection (Pool size: {this.queue.Count})");
             }
 
             if (viewer != null && !string.IsNullOrWhiteSpace(viewer.Username))
@@ -128,46 +124,54 @@ namespace UTSTwitchIntegration.Game
                 return viewer.Username;
             }
 
-            if (config.EnablePredefinedNames)
-            {
-                string predefinedName = PredefinedNamesManager.Instance.GetRandomName();
-                if (!string.IsNullOrWhiteSpace(predefinedName))
-                {
-                    ModLogger.Debug($"Queue empty, using predefined name: '{predefinedName}'");
-                    return predefinedName;
-                }
-            }
+            if (!config.EnablePredefinedNames)
+                return null;
 
-            return null;
+            string predefinedName = PredefinedNamesManager.Instance.GetRandomName();
+            if (string.IsNullOrWhiteSpace(predefinedName))
+                return null;
+
+            ModLogger.Debug($"Queue empty, using predefined name: '{predefinedName}'");
+            return predefinedName;
         }
 
         /// <summary>
         /// Attempt to spawn the next viewer from queue (immediate spawn mode)
         /// </summary>
-        public bool TrySpawnNextViewer()
+        public void TrySpawnNextViewer()
         {
             ModConfiguration config = ConfigManager.GetConfiguration();
             if (!config.EnableImmediateSpawn)
             {
-                return false;
+                return;
             }
 
             float currentTime = Time.time;
-            if (currentTime - _lastSpawnTime < MIN_SPAWN_INTERVAL)
+            if (currentTime - this.lastSpawnTime < MIN_SPAWN_INTERVAL)
             {
-                return false;
+                return;
             }
 
-            if (_queue.Count == 0)
+            if (this.queue.Count == 0)
             {
-                return false;
+                return;
             }
 
             TheaterController theaterController = TheaterController.Instance;
-            if (theaterController == null)
+            if (!theaterController)
             {
-                ModLogger.Warning("TheaterController.Instance is null - game may not be ready");
-                return false;
+                if (!this.hasLoggedTheaterControllerNullWarning)
+                {
+                    ModLogger.Warning("TheaterController.Instance is null - game may not be ready");
+                    this.hasLoggedTheaterControllerNullWarning = true;
+                }
+                return;
+            }
+
+            // Reset warning flag when TheaterController becomes available
+            if (this.hasLoggedTheaterControllerNullWarning)
+            {
+                this.hasLoggedTheaterControllerNullWarning = false;
             }
 
             try
@@ -176,66 +180,66 @@ namespace UTSTwitchIntegration.Game
             }
             catch
             {
-                ModLogger.Warning("TheaterController.Instance is destroyed or invalid");
-                return false;
+                if (!this.hasLoggedTheaterControllerInvalidWarning)
+                {
+                    ModLogger.Warning("TheaterController.Instance is destroyed or invalid");
+                    this.hasLoggedTheaterControllerInvalidWarning = true;
+                }
+                return;
             }
 
-            ViewerInfo viewer;
+            // Reset warning flag when TheaterController is valid
+            if (this.hasLoggedTheaterControllerInvalidWarning)
+            {
+                this.hasLoggedTheaterControllerInvalidWarning = false;
+            }
 
-            if (config.SelectionMethod == QueueSelectionMethod.Random)
-            {
-                viewer = _queue.DequeueRandom();
-            }
-            else
-            {
-                viewer = _queue.Dequeue();
-            }
+            ViewerInfo viewer = config.SelectionMethod == QueueSelectionMethod.Random
+                ? this.queue.DequeueRandom()
+                : this.queue.Dequeue();
 
             if (viewer == null || string.IsNullOrWhiteSpace(viewer.Username))
             {
-                return false;
+                return;
             }
 
             try
             {
-                lock (_pendingUsernameLock)
+                lock (PendingUsernameLock)
                 {
-                    _pendingUsername = viewer.Username;
+                    pendingUsername = viewer.Username;
                 }
 
                 CustomerController customer = theaterController.SpawnCustomer();
 
-                lock (_pendingUsernameLock)
+                lock (PendingUsernameLock)
                 {
-                    if (_pendingUsername == viewer.Username)
+                    if (pendingUsername == viewer.Username)
                     {
-                        _pendingUsername = null;
+                        pendingUsername = null;
                     }
                 }
 
-                if (customer == null)
+                if (!customer)
                 {
                     ModLogger.Error($"Failed to spawn customer for viewer '{viewer.Username}' - SpawnCustomer returned null");
-                    return false;
+                    return;
                 }
 
-                _spawnedViewers.TryAdd(customer, viewer.Username);
+                this.spawnedViewers.TryAdd(customer, viewer.Username);
                 ModLogger.Info($"Successfully spawned viewer '{viewer.Username}' as Customer ID={customer.CustomerId}");
 
-                _lastSpawnTime = currentTime;
-                return true;
+                this.lastSpawnTime = currentTime;
             }
             catch (System.Exception ex)
             {
                 ModLogger.Error($"Exception while spawning viewer '{viewer.Username}': {ex.Message}");
                 ModLogger.Debug($"Stack trace: {ex.StackTrace}");
 
-                lock (_pendingUsernameLock)
+                lock (PendingUsernameLock)
                 {
-                    _pendingUsername = null;
+                    pendingUsername = null;
                 }
-
-                return false;
             }
         }
 
@@ -245,10 +249,10 @@ namespace UTSTwitchIntegration.Game
         /// <returns>Username if spawn is pending, null otherwise</returns>
         public static string GetAndClearPendingUsername()
         {
-            lock (_pendingUsernameLock)
+            lock (PendingUsernameLock)
             {
-                string username = _pendingUsername;
-                _pendingUsername = null;
+                string username = pendingUsername;
+                pendingUsername = null;
                 return username;
             }
         }
@@ -260,7 +264,7 @@ namespace UTSTwitchIntegration.Game
         /// <param name="username">Twitch username</param>
         public void StoreViewerUsername(CustomerController customer, string username)
         {
-            if (customer == null)
+            if (!customer)
             {
                 return;
             }
@@ -270,58 +274,15 @@ namespace UTSTwitchIntegration.Game
                 return;
             }
 
-            if (_spawnedViewers.TryAdd(customer, username))
+            if (this.spawnedViewers.TryAdd(customer, username))
             {
                 ModLogger.Debug($"Stored username '{username}' for Customer ID={customer.CustomerId}");
             }
             else
             {
-                _spawnedViewers[customer] = username;
+                this.spawnedViewers[customer] = username;
                 ModLogger.Debug($"Username already stored for Customer ID={customer.CustomerId}, updating to '{username}'");
             }
-        }
-
-        /// <summary>
-        /// Get username for a spawned customer
-        /// </summary>
-        /// <param name="customer">Customer to look up</param>
-        /// <returns>Username if found, null otherwise</returns>
-        public string GetViewerUsername(CustomerController customer)
-        {
-            if (customer == null)
-            {
-                return null;
-            }
-
-            _spawnedViewers.TryGetValue(customer, out string username);
-            return username;
-        }
-
-        /// <summary>
-        /// Remove a customer from tracking
-        /// </summary>
-        /// <param name="customer">Customer to remove</param>
-        public void RemoveViewer(CustomerController customer)
-        {
-            if (customer == null)
-            {
-                return;
-            }
-
-            if (_spawnedViewers.TryRemove(customer, out _))
-            {
-                ModLogger.Debug($"Removed viewer tracking for Customer ID={customer.CustomerId}");
-            }
-        }
-
-        /// <summary>
-        /// Clear all viewers from pool
-        /// </summary>
-        public void ClearQueue()
-        {
-            int count = _queue.Count;
-            _queue.Clear();
-            ModLogger.Info($"Cleared spawn pool ({count} viewers removed)");
         }
 
         /// <summary>
@@ -331,22 +292,23 @@ namespace UTSTwitchIntegration.Game
         {
             try
             {
-                int queueCount = _queue.Count;
-                int spawnedCount = _spawnedViewers.Count;
+                int queueCount = this.queue.Count;
+                int spawnedCount = this.spawnedViewers.Count;
 
-                _queue.Clear();
+                this.queue.Clear();
                 ModLogger.Debug($"Cleared viewer queue ({queueCount} viewers removed)");
 
-                _spawnedViewers.Clear();
+                this.spawnedViewers.Clear();
                 ModLogger.Debug($"Cleared spawned viewer tracking ({spawnedCount} tracked viewers removed)");
 
-                lock (_pendingUsernameLock)
+                lock (PendingUsernameLock)
                 {
-                    _pendingUsername = null;
+                    pendingUsername = null;
                 }
+
                 ModLogger.Debug("Cleared pending username");
 
-                _lastSpawnTime = 0f;
+                this.lastSpawnTime = 0f;
                 ModLogger.Info("Spawn manager cleanup completed");
             }
             catch (System.Exception ex)
@@ -357,4 +319,3 @@ namespace UTSTwitchIntegration.Game
         }
     }
 }
-

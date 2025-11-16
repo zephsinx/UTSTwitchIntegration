@@ -1,26 +1,21 @@
-#nullable disable
 using System.Collections.Generic;
 
 namespace UTSTwitchIntegration.Config
 {
     public class ConfigValidationResult
     {
-        private readonly List<string> _errors = new List<string>();
-        private readonly List<string> _warnings = new List<string>();
+        private readonly List<string> errors = new List<string>();
+        private readonly List<string> warnings = new List<string>();
 
-        public bool IsValid => _errors.Count == 0;
+        public bool IsValid => this.errors.Count == 0;
 
-        public bool HasWarnings => _warnings.Count > 0;
-
-        public IReadOnlyList<string> Errors => _errors;
-
-        public IReadOnlyList<string> Warnings => _warnings;
+        public bool HasWarnings => this.warnings.Count > 0;
 
         public void AddError(string error)
         {
             if (!string.IsNullOrWhiteSpace(error))
             {
-                _errors.Add(error);
+                this.errors.Add(error);
             }
         }
 
@@ -28,7 +23,7 @@ namespace UTSTwitchIntegration.Config
         {
             if (!string.IsNullOrWhiteSpace(warning))
             {
-                _warnings.Add(warning);
+                this.warnings.Add(warning);
             }
         }
 
@@ -39,49 +34,25 @@ namespace UTSTwitchIntegration.Config
         {
             List<string> parts = new List<string>();
 
-            if (_errors.Count > 0)
+            if (this.errors.Count > 0)
             {
-                parts.Add($"Configuration validation failed with {_errors.Count} error(s):");
-                foreach (string error in _errors)
+                parts.Add($"Configuration validation failed with {this.errors.Count} error(s):");
+                foreach (string error in this.errors)
                 {
                     parts.Add($"  - {error}");
                 }
             }
 
-            if (_warnings.Count > 0)
+            if (this.warnings.Count <= 0)
+                return string.Join("\n", parts);
+
+            parts.Add($"Configuration validation produced {this.warnings.Count} warning(s):");
+            foreach (string warning in this.warnings)
             {
-                parts.Add($"Configuration validation produced {_warnings.Count} warning(s):");
-                foreach (string warning in _warnings)
-                {
-                    parts.Add($"  - {warning}");
-                }
+                parts.Add($"  - {warning}");
             }
 
             return string.Join("\n", parts);
         }
-
-        /// <summary>
-        /// Returns a concise single-line summary of validation status
-        /// </summary>
-        public string GetSummaryMessage()
-        {
-            if (IsValid && !HasWarnings)
-            {
-                return "Configuration is valid";
-            }
-
-            List<string> parts = new List<string>();
-            if (_errors.Count > 0)
-            {
-                parts.Add($"{_errors.Count} error(s)");
-            }
-            if (_warnings.Count > 0)
-            {
-                parts.Add($"{_warnings.Count} warning(s)");
-            }
-
-            return $"Configuration validation: {string.Join(", ", parts)}";
-        }
     }
 }
-

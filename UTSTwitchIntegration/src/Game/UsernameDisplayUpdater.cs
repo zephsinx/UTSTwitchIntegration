@@ -1,4 +1,3 @@
-#nullable disable
 using UnityEngine;
 using Il2CppGame.Customers;
 using System;
@@ -15,30 +14,33 @@ namespace UTSTwitchIntegration.Game
         /// <summary>
         /// Constructor required for Il2CppInterop class injection
         /// </summary>
-        public UsernameDisplayUpdater(IntPtr ptr) : base(ptr) { }
+        public UsernameDisplayUpdater(IntPtr ptr) : base(ptr)
+        {
+        }
 
-        private CustomerController _customer;
-        private Camera _mainCamera;
-        private bool _initialized = false;
+        private CustomerController customer;
+        private Camera mainCamera;
+        private bool initialized;
 
         /// <summary>
         /// Display configuration constants
         /// </summary>
         private const float Y_OFFSET = 2.2f;
+
         private const float MAX_DISPLAY_DISTANCE = 50f;
 
-        public void Initialize(CustomerController customer, Camera mainCamera)
+        public void Initialize(CustomerController customerController, Camera camera)
         {
-            _customer = customer;
-            _mainCamera = mainCamera;
-            _initialized = true;
+            this.customer = customerController;
+            this.mainCamera = camera;
+            this.initialized = true;
 
-            if (_mainCamera == null)
+            if (!this.mainCamera)
             {
                 ModLogger.Warning("UsernameDisplayUpdater initialized with null camera - billboard behavior disabled");
             }
 
-            if (_customer == null)
+            if (!this.customer)
             {
                 ModLogger.Warning("UsernameDisplayUpdater initialized with null customer - will destroy on first update");
             }
@@ -46,51 +48,40 @@ namespace UTSTwitchIntegration.Game
 
         void LateUpdate()
         {
-            if (!_initialized)
+            if (!this.initialized || !this.customer || !this.customer.transform)
             {
-                ModLogger.Warning("UsernameDisplayUpdater.LateUpdate called before Initialize - destroying");
                 Destroy(gameObject);
                 return;
             }
 
-            if (_customer == null || _customer.transform == null)
-            {
-                ModLogger.Debug("Customer destroyed - cleaning up username display");
-                Destroy(gameObject);
-                return;
-            }
-
-            transform.position = _customer.transform.position + Vector3.up * Y_OFFSET;
+            transform.position = this.customer.transform.position + Vector3.up * Y_OFFSET;
 
             // Billboard behavior for readability
-            if (_mainCamera != null)
+            if (this.mainCamera)
             {
-                transform.LookAt(_mainCamera.transform);
+                transform.LookAt(this.mainCamera.transform);
                 // TextMeshPro faces backward by default, rotate 180° on Y
                 transform.Rotate(0, 180, 0);
             }
 
             // Distance culling for visibility
-            if (_mainCamera != null)
+            if (!this.mainCamera)
+                return;
+
+            float distance = Vector3.Distance(this.mainCamera.transform.position, this.transform.position);
+            bool isWithinDistance = distance <= MAX_DISPLAY_DISTANCE;
+
+            if (this.gameObject.activeSelf != isWithinDistance)
             {
-                float distance = Vector3.Distance(_mainCamera.transform.position, transform.position);
-                bool isWithinDistance = distance <= MAX_DISPLAY_DISTANCE;
-
-                bool shouldShow = isWithinDistance;
-
-                if (gameObject.activeSelf != shouldShow)
-                {
-                    gameObject.SetActive(shouldShow);
-                }
+                this.gameObject.SetActive(isWithinDistance);
             }
         }
 
         void OnDestroy()
         {
-            _customer = null;
-            _mainCamera = null;
-            _initialized = false;
+            this.customer = null;
+            this.mainCamera = null;
+            this.initialized = false;
         }
     }
 }
-

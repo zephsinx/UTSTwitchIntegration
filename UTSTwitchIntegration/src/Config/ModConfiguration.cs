@@ -1,4 +1,3 @@
-#nullable disable
 namespace UTSTwitchIntegration.Config
 {
     /// <summary>
@@ -8,9 +7,9 @@ namespace UTSTwitchIntegration.Config
     {
         Everyone = 0,
         Subscriber = 1,
-        VIP = 2,
+        Vip = 2,
         Moderator = 3,
-        Broadcaster = 4
+        Broadcaster = 4,
     }
 
     /// <summary>
@@ -22,10 +21,11 @@ namespace UTSTwitchIntegration.Config
         /// Random
         /// </summary>
         Random = 0,
+
         /// <summary>
         /// First-in-first-out
         /// </summary>
-        FIFO = 1
+        Fifo = 1,
     }
 
     public class ModConfiguration
@@ -61,14 +61,9 @@ namespace UTSTwitchIntegration.Config
         public bool Enabled { get; set; } = true;
 
         /// <summary>
-        /// Use pool-based spawning (viewers added to pool, assigned to natural spawns)
-        /// </summary>
-        public bool UsePoolMode { get; set; } = true;
-
-        /// <summary>
         /// Enable immediate spawning for testing (spawns NPCs immediately when !visit used)
         /// </summary>
-        public bool EnableImmediateSpawn { get; set; } = false;
+        public bool EnableImmediateSpawn { get; set; }
 
         /// <summary>
         /// Maximum pool size (0 = unlimited)
@@ -94,7 +89,7 @@ namespace UTSTwitchIntegration.Config
         /// <summary>
         /// Enable predefined names when queue is empty
         /// </summary>
-        public bool EnablePredefinedNames { get; set; } = false;
+        public bool EnablePredefinedNames { get; set; }
 
         /// <summary>
         /// Path to predefined names file (one name per line)
@@ -102,4 +97,3 @@ namespace UTSTwitchIntegration.Config
         public string PredefinedNamesFilePath { get; set; } = "UserData/predefined_names.txt";
     }
 }
-

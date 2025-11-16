@@ -1,4 +1,3 @@
-#nullable disable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,12 +9,12 @@ namespace UTSTwitchIntegration.Utils
     /// </summary>
     public class PredefinedNamesManager
     {
-        private static PredefinedNamesManager _instance;
-        private static readonly object _instanceLock = new object();
+        private static PredefinedNamesManager instance;
+        private static readonly object InstanceLock = new object();
 
-        private List<string> _names;
-        private readonly Random _random;
-        private readonly object _namesLock = new object();
+        private List<string> names;
+        private readonly Random random;
+        private readonly object namesLock = new object();
 
         /// <summary>
         /// Singleton instance of PredefinedNamesManager
@@ -24,17 +23,14 @@ namespace UTSTwitchIntegration.Utils
         {
             get
             {
-                if (_instance == null)
+                if (instance != null)
+                    return instance;
+
+                lock (InstanceLock)
                 {
-                    lock (_instanceLock)
-                    {
-                        if (_instance == null)
-                        {
-                            _instance = new PredefinedNamesManager();
-                        }
-                    }
+                    instance ??= new PredefinedNamesManager();
                 }
-                return _instance;
+                return instance;
             }
         }
 
@@ -45,17 +41,17 @@ namespace UTSTwitchIntegration.Utils
         {
             get
             {
-                lock (_namesLock)
+                lock (this.namesLock)
                 {
-                    return _names?.Count ?? 0;
+                    return this.names?.Count ?? 0;
                 }
             }
         }
 
         private PredefinedNamesManager()
         {
-            _names = new List<string>();
-            _random = new Random();
+            this.names = new List<string>();
+            this.random = new Random();
         }
 
         /// <summary>
@@ -69,21 +65,19 @@ namespace UTSTwitchIntegration.Utils
                 return filePath;
             }
 
-            if (filePath.StartsWith("UserData/", StringComparison.OrdinalIgnoreCase) ||
-                filePath.StartsWith("UserData\\", StringComparison.OrdinalIgnoreCase))
-            {
-                string relativePath = filePath.Substring(9);
-                return Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory, relativePath);
-            }
+            if (!filePath.StartsWith("UserData/", StringComparison.OrdinalIgnoreCase) &&
+                !filePath.StartsWith("UserData\\", StringComparison.OrdinalIgnoreCase))
+                return Path.Combine(MelonLoader.Utils.MelonEnvironment.GameRootDirectory, filePath);
+            string relativePath = filePath[9..];
+            return Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory, relativePath);
 
-            return Path.Combine(MelonLoader.Utils.MelonEnvironment.GameRootDirectory, filePath);
         }
 
         /// <summary>
         /// Create default predefined names file
         /// </summary>
         /// <param name="filePath">Absolute path where to create the file</param>
-        private void CreateDefaultNamesFile(string filePath)
+        private static void CreateDefaultNamesFile(string filePath)
         {
             try
             {
@@ -93,9 +87,8 @@ namespace UTSTwitchIntegration.Utils
                     Directory.CreateDirectory(directory);
                 }
 
-                string[] defaultNames = new[]
-                {
-                    "Emory", "Pascale", "Augustus", "Felipa", "Nadia", "Karine", "Reyna", "Monty", "Abbie", "Concepcion", "Brown", "Marquise", "Darrell", "Xzavier", "Ella", "Greg", "Keyon", "Shyanne", "Nannie", "Ambrose", "Doyle", "Jaime", "Connor", "Tad", "Rafaela", "Santa", "Meghan", "Julianne", "Kenton", "Eileen", "Trudie", "Marlee", "Priscilla", "Gustave", "Sofia", "Giovanna", "Rod", "Karen", "Monte", "Dulce", "Lia", "Della", "Ayla", "Leonard", "Dortha", "Jay", "Gennaro", "Timothy", "Houston", "Kamille", "Narciso", "Ronny", "Destany", "Darrick", "Vicenta", "Virginie", "Brisa", "Anahi", "Cleveland", "Sienna", "Adrien", "Reese", "Lorenzo", "Roxane", "Rosina", "Elinore", "Zoe", "Hortense", "Catalina", "Alejandra", "Jasmin", "Rickey", "Kayley", "Marley", "Amaya", "Dorian", "Cody", "Candace", "Stevie", "Caterina", "Nannie", "Rhoda", "Houston", "Everett", "Rico", "Evelyn", "Malvina", "Harvey", "Sam", "Joey", "Connie", "Mac", "Opal", "Cydney", "Allen", "Chelsea", "Johnpaul", "Myrl", "Tomasa", "Samir", "Elna", "Simone", "Casandra", "Turner", "Genoveva", "Robert", "Mateo", "Okey", "Eleanore", "Veronica", "Jordon", "Verna", "Malinda", "Oswaldo", "Candida", "Lenna", "Meredith", "Jasmin", "Roderick", "Emely", "Rickie", "Julie", "Andrew", "Vaughn", "Gonzalo", "Edwardo", "Ruben", "Emelia", "Oswald", "Edgar", "Tania", "Eleazar", "Ottis", "Stephanie", "Freda", "Keith", "Melba", "Norval", "Omari", "Imogene", "Haleigh", "Lorenz", "Delphine", "Chester", "Domenick", "Dale", "Xavier", "Leone", "Virgil", "Evalyn", "Julia", "Jonas", "Bernadine", "Cortney", "Nettie", "Rory", "Marjolaine", "Elvera", "Daphnee", "Rex", "Doris", "Louie", "Claire", "Aisha", "Allie", "Winston", "Valentine", "Cathy", "Fred", "Shanny", "Nyasia", "Edna", "Mariela", "Florencio", "Thalia", "Micheal", "Natalia", "Kyla", "Marion", "Shakira", "Favian", "Carolanne", "Vita", "Cale", "Chester", "Tyra", "Maxwell", "Kamron", "Carrie", "Virgie", "Meta", "Micheal", "Eunice", "Deion", "Horace", "Jackeline", "Cedrick", "Rosella", "Nannie", "Onie", "Adelle", "Luigi", "Brian", "Lucius", "Ida", "Mercedes", "Octavia", "Gilbert", "Icie", "Hassan", "Cruz", "Earline", "Toney", "Imani", "Kaden", "Chasity", "Vladimir", "Minerva", "Consuelo", "Benjamin", "Novella", "Cecilia", "Patience", "Roslyn", "Camren", "Eliezer", "Dorthy", "Adrain", "Genoveva", "Michale", "Julia", "Henry", "Crystel", "Lewis", "Isaias", "Geovanni", "Rowan", "Samara", "Kayla", "Sallie", "Albin", "Estrella", "Stephania", "Beth", "Cecile", "Nat", "Lenore", "General", "Lauretta", "Donna", "Chet", "Tanner", "Jerome", "Coby", "Annamae", "Aurelie", "Hosea", "Shanelle", "Reginald", "Dee", "Lessie", "Evans", "Russell", "Geovany", "Aurelie", "Kelli", "Guy", "Libbie", "Erika", "Arnulfo", "Terrill", "Lelia", "Vernie", "Neha", "Jedediah", "Ivah", "Luz", "Etha", "London", "Samara", "Jabari", "Mariana", "Keshawn", "Serenity", "Elijah", "Kennith", "Grant", "Geovanni", "Shaniya", "Jaeden", "Nella", "Stefanie", "Maximillian", "Joseph", "Magnus", "Camylle", "Jadyn", "Gerda", "Felipe", "Jalyn", "Shemar", "Maxwell", "Sophie", "Sophie", "Makayla", "Barbara", "Frederik", "Ardith", "Nels", "Maurice", "Orville", "Elvera", "Erica", "Yvette", "Kellen", "Matilde", "Chaim", "Mable", "Lilly", "Marcella", "Dagmar", "Zachariah", "Chadd", "Lilliana", "Lauriane", "Delta", "Friedrich", "Sven", "Hardy", "Mable", "Myles", "Cora", "Thea", "Leola", "Lottie", "Eileen", "Alejandrin", "Layla", "Darian", "Meda", "Elsa", "Jovany", "Mona", "Camryn", "Kaden", "Raquel", "Lola", "Izaiah", "Lucile", "Randy", "Allison", "Felix", "Francisca", "Ernest", "Cecil", "Jedidiah", "Jalen", "Aliza", "Evalyn", "Agustina", "Prince", "Price", "Darwin", "D'angelo", "Osvaldo", "Lina", "Loren", "Bella", "Constantin", "Hilario", "Adelle", "Alan", "Estella", "Hillary", "Edward", "Arno", "Una", "Esmeralda", "Maia", "Trycia", "Anastacio", "Orpha", "Vidal", "Elinore", "Letha", "Jonathan", "Sid", "Valentine", "Amira", "Leola", "Lucio", "Nola", "Garfield", "Makenzie", "Aubrey", "Lorenz", "Horacio", "Murray", "Lucinda", "Bret", "Tyson", "Priscilla", "Heidi", "Bernie", "Elva", "Brendon", "Carey", "Charley", "Randall", "Ashly", "Brianne", "Edd", "Brielle", "Antonio", "Ceasar", "Delphine", "Wilson", "Caleb", "Laurel", "Alanna", "Chet", "Carmine", "Sidney", "Angelo", "Elliott", "Greg", "Jennyfer", "Lisa", "Ava", "Jalen", "Mortimer", "Johathan", "Markus", "Jesse", "Rosalind", "Eldridge", "Emile", "Blaise", "Elda", "Chasity", "Reggie", "Lily", "Arely", "Arnold", "Abbigail", "Mariam", "Misael", "Jaiden", "Fredy", "Jayme", "Ardella", "Genoveva", "Jesus", "Akeem", "Tanner", "Dock", "Giuseppe", "Koby", "Josie", "Tiara", "Jaren", "Marilyne", "Kaylie", "Brionna", "Nolan", "Ansley", "Ransom", "Zelma", "Shania", "Ashleigh", "Eryn", "Hershel", "Immanuel", "Ashleigh", "Jovani", "Joshua", "Lora", "Michelle", "Justine", "Angel", "Brice", "Verdie", "Brent", "Kayden", "Rashad", "Neva", "Paula", "Malika", "Stephany", "Shawn", "Jayden", "Bradford", "Roel", "Owen", "Sonia", "Dustin", "Bernhard", "Vergie", "Adrien", "Berenice"
+                string[] defaultNames = {
+                    "Emory", "Pascale", "Augustus", "Felipa", "Nadia", "Karine", "Reyna", "Monty", "Abbie", "Concepcion", "Brown", "Marquise", "Darrell", "Xzavier", "Ella", "Greg", "Keyon", "Shyanne", "Nannie", "Ambrose", "Doyle", "Jaime", "Connor", "Tad", "Rafaela", "Santa", "Meghan", "Julianne", "Kenton", "Eileen", "Trudie", "Marlee", "Priscilla", "Gustave", "Sofia", "Giovanna", "Rod", "Karen", "Monte", "Dulce", "Lia", "Della", "Ayla", "Leonard", "Dortha", "Jay", "Gennaro", "Timothy", "Houston", "Kamille", "Narciso", "Ronny", "Destany", "Darrick", "Vicenta", "Virginie", "Brisa", "Anahi", "Cleveland", "Sienna", "Adrien", "Reese", "Lorenzo", "Roxane", "Rosina", "Elinore", "Zoe", "Hortense", "Catalina", "Alejandra", "Jasmin", "Rickey", "Kayley", "Marley", "Amaya", "Dorian", "Cody", "Candace", "Stevie", "Caterina", "Nannie", "Rhoda", "Houston", "Everett", "Rico", "Evelyn", "Malvina", "Harvey", "Sam", "Joey", "Connie", "Mac", "Opal", "Cydney", "Allen", "Chelsea", "Johnpaul", "Myrl", "Tomasa", "Samir", "Elna", "Simone", "Casandra", "Turner", "Genoveva", "Robert", "Mateo", "Okey", "Eleanore", "Veronica", "Jordon", "Verna", "Malinda", "Oswaldo", "Candida", "Lenna", "Meredith", "Jasmin", "Roderick", "Emely", "Rickie", "Julie", "Andrew", "Vaughn", "Gonzalo", "Edwardo", "Ruben", "Emelia", "Oswald", "Edgar", "Tania", "Eleazar", "Ottis", "Stephanie", "Freda", "Keith", "Melba", "Norval", "Omari", "Imogene", "Haleigh", "Lorenz", "Delphine", "Chester", "Domenick", "Dale", "Xavier", "Leone", "Virgil", "Evalyn", "Julia", "Jonas", "Bernadine", "Cortney", "Nettie", "Rory", "Marjolaine", "Elvera", "Daphnee", "Rex", "Doris", "Louie", "Claire", "Aisha", "Allie", "Winston", "Valentine", "Cathy", "Fred", "Shanny", "Nyasia", "Edna", "Mariela", "Florencio", "Thalia", "Micheal", "Natalia", "Kyla", "Marion", "Shakira", "Favian", "Carolanne", "Vita", "Cale", "Chester", "Tyra", "Maxwell", "Kamron", "Carrie", "Virgie", "Meta", "Micheal", "Eunice", "Deion", "Horace", "Jackeline", "Cedrick", "Rosella", "Nannie", "Onie", "Adelle", "Luigi", "Brian", "Lucius", "Ida", "Mercedes", "Octavia", "Gilbert", "Icie", "Hassan", "Cruz", "Earline", "Toney", "Imani", "Kaden", "Chasity", "Vladimir", "Minerva", "Consuelo", "Benjamin", "Novella", "Cecilia", "Patience", "Roslyn", "Camren", "Eliezer", "Dorthy", "Adrain", "Genoveva", "Michale", "Julia", "Henry", "Crystel", "Lewis", "Isaias", "Geovanni", "Rowan", "Samara", "Kayla", "Sallie", "Albin", "Estrella", "Stephania", "Beth", "Cecile", "Nat", "Lenore", "General", "Lauretta", "Donna", "Chet", "Tanner", "Jerome", "Coby", "Annamae", "Aurelie", "Hosea", "Shanelle", "Reginald", "Dee", "Lessie", "Evans", "Russell", "Geovany", "Aurelie", "Kelli", "Guy", "Libbie", "Erika", "Arnulfo", "Terrill", "Lelia", "Vernie", "Neha", "Jedediah", "Ivah", "Luz", "Etha", "London", "Samara", "Jabari", "Mariana", "Keshawn", "Serenity", "Elijah", "Kennith", "Grant", "Geovanni", "Shaniya", "Jaeden", "Nella", "Stefanie", "Maximillian", "Joseph", "Magnus", "Camylle", "Jadyn", "Gerda", "Felipe", "Jalyn", "Shemar", "Maxwell", "Sophie", "Sophie", "Makayla", "Barbara", "Frederik", "Ardith", "Nels", "Maurice", "Orville", "Elvera", "Erica", "Yvette", "Kellen", "Matilde", "Chaim", "Mable", "Lilly", "Marcella", "Dagmar", "Zachariah", "Chadd", "Lilliana", "Lauriane", "Delta", "Friedrich", "Sven", "Hardy", "Mable", "Myles", "Cora", "Thea", "Leola", "Lottie", "Eileen", "Alejandrin", "Layla", "Darian", "Meda", "Elsa", "Jovany", "Mona", "Camryn", "Kaden", "Raquel", "Lola", "Izaiah", "Lucile", "Randy", "Allison", "Felix", "Francisca", "Ernest", "Cecil", "Jedidiah", "Jalen", "Aliza", "Evalyn", "Agustina", "Prince", "Price", "Darwin", "D'angelo", "Osvaldo", "Lina", "Loren", "Bella", "Constantin", "Hilario", "Adelle", "Alan", "Estella", "Hillary", "Edward", "Arno", "Una", "Esmeralda", "Maia", "Trycia", "Anastacio", "Orpha", "Vidal", "Elinore", "Letha", "Jonathan", "Sid", "Valentine", "Amira", "Leola", "Lucio", "Nola", "Garfield", "Makenzie", "Aubrey", "Lorenz", "Horacio", "Murray", "Lucinda", "Bret", "Tyson", "Priscilla", "Heidi", "Bernie", "Elva", "Brendon", "Carey", "Charley", "Randall", "Ashly", "Brianne", "Edd", "Brielle", "Antonio", "Ceasar", "Delphine", "Wilson", "Caleb", "Laurel", "Alanna", "Chet", "Carmine", "Sidney", "Angelo", "Elliott", "Greg", "Jennyfer", "Lisa", "Ava", "Jalen", "Mortimer", "Johathan", "Markus", "Jesse", "Rosalind", "Eldridge", "Emile", "Blaise", "Elda", "Chasity", "Reggie", "Lily", "Arely", "Arnold", "Abbigail", "Mariam", "Misael", "Jaiden", "Fredy", "Jayme", "Ardella", "Genoveva", "Jesus", "Akeem", "Tanner", "Dock", "Giuseppe", "Koby", "Josie", "Tiara", "Jaren", "Marilyne", "Kaylie", "Brionna", "Nolan", "Ansley", "Ransom", "Zelma", "Shania", "Ashleigh", "Eryn", "Hershel", "Immanuel", "Ashleigh", "Jovani", "Joshua", "Lora", "Michelle", "Justine", "Angel", "Brice", "Verdie", "Brent", "Kayden", "Rashad", "Neva", "Paula", "Malika", "Stephany", "Shawn", "Jayden", "Bradford", "Roel", "Owen", "Sonia", "Dustin", "Bernhard", "Vergie", "Adrien", "Berenice",
                 };
 
                 File.WriteAllLines(filePath, defaultNames);
@@ -143,9 +136,9 @@ namespace UTSTwitchIntegration.Utils
                     }
                 }
 
-                lock (_namesLock)
+                lock (this.namesLock)
                 {
-                    _names = validNames;
+                    this.names = validNames;
                 }
 
                 if (validNames.Count > 0)
@@ -153,11 +146,9 @@ namespace UTSTwitchIntegration.Utils
                     Logger.Info($"Loaded {validNames.Count} predefined names from {resolvedPath}");
                     return true;
                 }
-                else
-                {
-                    Logger.Warning($"Predefined names file is empty or contains no valid names: {resolvedPath}");
-                    return false;
-                }
+
+                Logger.Warning($"Predefined names file is empty or contains no valid names: {resolvedPath}");
+                return false;
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -184,27 +175,15 @@ namespace UTSTwitchIntegration.Utils
         /// </summary>
         public string GetRandomName()
         {
-            lock (_namesLock)
+            lock (this.namesLock)
             {
-                if (_names == null || _names.Count == 0)
+                if (this.names == null || this.names.Count == 0)
                 {
                     return null;
                 }
 
-                int randomIndex = _random.Next(_names.Count);
-                return _names[randomIndex];
-            }
-        }
-
-        /// <summary>
-        /// Clear all loaded names
-        /// </summary>
-        public void Clear()
-        {
-            lock (_namesLock)
-            {
-                _names?.Clear();
-                Logger.Debug("Cleared predefined names");
+                int randomIndex = this.random.Next(this.names.Count);
+                return this.names[randomIndex];
             }
         }
     }
