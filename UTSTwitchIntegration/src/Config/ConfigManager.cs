@@ -28,6 +28,7 @@ namespace UTSTwitchIntegration.Config
         private static MelonPreferences_Entry<int> userCooldownSeconds;
         private static MelonPreferences_Entry<bool> enablePredefinedNames;
         private static MelonPreferences_Entry<string> predefinedNamesFilePath;
+        private static MelonPreferences_Entry<int> logLevel;
 
         public static void Initialize()
         {
@@ -126,6 +127,12 @@ namespace UTSTwitchIntegration.Config
                     "Predefined Names File Path",
                     "Path to predefined names file (one name per line). Default: UserData/predefined_names.txt");
 
+                logLevel = category.CreateEntry(
+                    "LogLevel",
+                    (int)LogLevel.Info,
+                    "Log Level",
+                    "Log verbosity level (0=Error, 1=Warning, 2=Info, 3=Debug). Default: 2 (Info)");
+
                 // Load configuration into model
                 LoadConfiguration();
 
@@ -181,6 +188,7 @@ namespace UTSTwitchIntegration.Config
                     UserCooldownSeconds = userCooldownSeconds.Value,
                     EnablePredefinedNames = enablePredefinedNames.Value,
                     PredefinedNamesFilePath = predefinedNamesFilePath.Value ?? "UserData/predefined_names.txt",
+                    LogLevel = logLevel.Value,
                 };
             }
         }
@@ -326,6 +334,17 @@ namespace UTSTwitchIntegration.Config
                     "Please set UserCooldownSeconds to 0 (disabled) or a positive number.");
             }
 
+            int logLevelValue = modConfiguration.LogLevel;
+            if (logLevelValue < 0 || logLevelValue > 3)
+            {
+                result.AddWarning(
+                    $"LogLevel is {logLevelValue}, which is out of range. " +
+                    "Valid values are: 0=Error, 1=Warning, 2=Info, 3=Debug. " +
+                    "Defaulting to Info (2).");
+                modConfiguration.LogLevel = (int)LogLevel.Info;
+                logLevel.Value = (int)LogLevel.Info;
+            }
+
             if (modConfiguration.EnablePredefinedNames)
             {
                 if (string.IsNullOrWhiteSpace(modConfiguration.PredefinedNamesFilePath))
@@ -350,6 +369,7 @@ namespace UTSTwitchIntegration.Config
             ModConfiguration modConfiguration = GetConfiguration();
 
             Logger.Info("=== Configuration Summary ===");
+            Logger.Info($"Log Level: {GetLogLevelName(modConfiguration.LogLevel)}");
             Logger.Info($"Enabled: {modConfiguration.Enabled}");
 
             if (modConfiguration.Enabled)
@@ -393,6 +413,18 @@ namespace UTSTwitchIntegration.Config
                 PermissionLevel.Vip => "VIP",
                 PermissionLevel.Moderator => "Moderator",
                 PermissionLevel.Broadcaster => "Broadcaster",
+                _ => $"Unknown ({level})",
+            };
+        }
+
+        private static string GetLogLevelName(int level)
+        {
+            return level switch
+            {
+                0 => "Error",
+                1 => "Warning",
+                2 => "Info",
+                3 => "Debug",
                 _ => $"Unknown ({level})",
             };
         }

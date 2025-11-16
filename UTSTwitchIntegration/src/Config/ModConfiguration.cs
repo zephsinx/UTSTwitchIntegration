@@ -95,5 +95,10 @@ namespace UTSTwitchIntegration.Config
         /// Path to predefined names file (one name per line)
         /// </summary>
         public string PredefinedNamesFilePath { get; set; } = "UserData/predefined_names.txt";
+
+        /// <summary>
+        /// Log verbosity level (0=Error, 1=Warning, 2=Info, 3=Debug)
+        /// </summary>
+        public int LogLevel { get; set; } = 2;
     }
 }

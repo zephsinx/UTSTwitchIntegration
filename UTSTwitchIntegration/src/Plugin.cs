@@ -13,8 +13,6 @@ namespace UTSTwitchIntegration
 {
     public class Plugin : MelonMod
     {
-        private const LogLevel LOG_LEVEL = LogLevel.Info;
-
         private HarmonyLib.Harmony harmony;
         private const string HARMONY_ID = "com.uts.twitch-integration";
         private TwitchClientManager twitchClient;
@@ -24,7 +22,7 @@ namespace UTSTwitchIntegration
         public override void OnInitializeMelon()
         {
             Logger.Initialize(LoggerInstance);
-            Logger.SetLogLevel(LOG_LEVEL);
+            Logger.SetLogLevel(LogLevel.Info);
 
             Logger.Info("UTSTwitchIntegration mod loaded successfully!");
 
@@ -43,10 +41,10 @@ namespace UTSTwitchIntegration
             {
                 ConfigManager.Initialize();
                 ModConfiguration config = ConfigManager.GetConfiguration();
+                Logger.SetLogLevel((LogLevel)config.LogLevel);
                 Logger.Info("Configuration loaded");
                 Logger.Debug($"Twitch integration enabled: {config.Enabled}");
 
-                // Load predefined names if enabled
                 if (config.EnablePredefinedNames)
                 {
                     bool loaded = PredefinedNamesManager.Instance.LoadNamesFromFile(config.PredefinedNamesFilePath);
@@ -205,7 +203,6 @@ namespace UTSTwitchIntegration
                 ModConfiguration config = ConfigManager.GetConfiguration();
                 if (command.CommandName.Equals(config.VisitCommandName, System.StringComparison.OrdinalIgnoreCase))
                 {
-                    // Check cooldown before processing command
                     if (this.cooldownManager != null && this.cooldownManager.IsOnCooldown(command.Username, config.UserCooldownSeconds))
                     {
                         double remainingCooldown = this.cooldownManager.GetRemainingCooldown(command.Username, config.UserCooldownSeconds);
