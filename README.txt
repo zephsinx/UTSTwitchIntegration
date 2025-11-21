@@ -1,5 +1,5 @@
 ================================================================================
-                        UTS TWITCH INTEGRATION v1.0.0
+                        UTS TWITCH INTEGRATION v1.1.0
 ================================================================================
 
 DESCRIPTION
@@ -20,13 +20,12 @@ FEATURES
 - Queue selection: Random or First-In-First-Out
 - Permission system (restrict commands to subs/VIPs/mods/broadcaster)
 - User cooldowns to prevent spam
-- Predefined names support
 - Auto-generated configuration file
 
 
 REQUIREMENTS
 ------------
-- Ultimate Theater Simulator (tested with v1.3.4, Build ID 20779152)
+- Ultimate Theater Simulator (tested with v1.3.5, Build ID 20884100)
 - MelonLoader 0.7.2-ci.2367 (nightly) or above
 - Twitch account for streaming (OAuth token recommended but optional)
 
@@ -90,11 +89,6 @@ VisitPermission      - Who can use !visit (default: 0)
                        0=Everyone, 1=Subscriber, 2=VIP, 3=Mod, 4=Broadcaster
 UserCooldownSeconds  - Cooldown between commands (default: 60)
 
-Predefined Names:
------------------
-EnablePredefinedNames     - Use predefined names when queue empty
-PredefinedNamesFilePath   - Path to names file (one name per line)
-
 
 HOW IT WORKS
 ------------
@@ -128,7 +122,6 @@ A: - In pool mode, NPCs only spawn when the game naturally spawns customers
 To increase the number of viewer NPCs:
 - Wait for the game to naturally spawn more customers (pool mode)
 - Increase MaxPoolSize if it's full
-- Enable predefined names
 
 
 SUPPORT
@@ -146,10 +139,12 @@ CREDITS
 
 VERSION HISTORY
 ---------------
+v1.1.0 - NPC name system integration
+- Integrated with game v1.3.5 native CustomerName functionality
+
 v1.0.0 - Initial release
 - Basic Twitch integration
 - Pool and immediate spawn modes
 - Username display
 - Permission system
 - Cooldown management
-- Predefined names support

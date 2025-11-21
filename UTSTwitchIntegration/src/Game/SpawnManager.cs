@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Il2CppGame.Shop;
 using Il2CppGame.Customers;
+using Il2CppGame.AIBase;
 using UnityEngine;
 using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Models;
@@ -37,8 +39,8 @@ namespace UTSTwitchIntegration.Game
         /// </summary>
         private const float MIN_SPAWN_INTERVAL = 5f;
 
-        private bool hasLoggedTheaterControllerNullWarning = false;
-        private bool hasLoggedTheaterControllerInvalidWarning = false;
+        private volatile bool hasLoggedTheaterControllerNullWarning;
+        private volatile bool hasLoggedTheaterControllerInvalidWarning;
 
         /// <summary>
         /// Singleton instance of SpawnManager
@@ -64,10 +66,19 @@ namespace UTSTwitchIntegration.Game
         /// </summary>
         public int QueueCount => this.queue.Count;
 
+        /// <summary>
+        /// Periodic cleanup check interval in seconds
+        /// </summary>
+        private volatile float lastCleanupCheckTime;
+        private const float CLEANUP_CHECK_INTERVAL = 2f;
+
         private SpawnManager()
         {
             this.queue = new ViewerQueue();
             this.spawnedViewers = new ConcurrentDictionary<CustomerController, string>();
+
+            ModConfiguration config = ConfigManager.GetConfiguration();
+            this.queue.SetSelectionMethod(config.SelectionMethod);
         }
 
         /// <summary>
@@ -83,59 +94,32 @@ namespace UTSTwitchIntegration.Game
             }
 
             ModConfiguration config = ConfigManager.GetConfiguration();
-            if (config.MaxPoolSize > 0 && this.queue.Count >= config.MaxPoolSize)
-            {
-                ModLogger.Warning($"Pool is full (MaxPoolSize: {config.MaxPoolSize}), cannot add viewer '{username}'");
-                return false;
-            }
+            if (config.MaxPoolSize <= 0 || this.queue.Count < config.MaxPoolSize)
+                return this.queue.Enqueue(username);
 
-            bool added = this.queue.Enqueue(username);
+            ModLogger.Warning($"Pool is full (MaxPoolSize: {config.MaxPoolSize}), cannot add viewer '{username}'");
+            return false;
 
-            if (added)
-            {
-                ModLogger.Debug($"Viewer '{username}' added to spawn pool (Pool size: {this.queue.Count})");
-            }
-            else
-            {
-                ModLogger.Debug($"Viewer '{username}' is already in pool, skipping duplicate");
-            }
-
-            return added;
         }
 
         /// <summary>
         /// Get next username from pool for natural spawn assignment
         /// </summary>
-        public string GetNextUsernameFromPool()
+        private string GetNextUsernameFromPool()
         {
             ModConfiguration config = ConfigManager.GetConfiguration();
-            ViewerInfo viewer;
 
-            if (config.SelectionMethod == QueueSelectionMethod.Random)
-            {
-                viewer = this.queue.DequeueRandom();
-                ModLogger.Debug($"Retrieved username '{viewer?.Username}' from pool using Random selection (Pool size: {this.queue.Count})");
-            }
-            else
-            {
-                viewer = this.queue.Dequeue();
-                ModLogger.Debug($"Retrieved username '{viewer?.Username}' from pool using FIFO selection (Pool size: {this.queue.Count})");
-            }
+            this.queue.SetSelectionMethod(config.SelectionMethod);
+
+            ViewerInfo viewer = this.queue.GetNext();
 
             if (viewer != null && !string.IsNullOrWhiteSpace(viewer.Username))
             {
+                this.queue.MarkUsernameInUse(viewer.Username);
                 return viewer.Username;
             }
 
-            if (!config.EnablePredefinedNames)
-                return null;
-
-            string predefinedName = PredefinedNamesManager.Instance.GetRandomName();
-            if (string.IsNullOrWhiteSpace(predefinedName))
-                return null;
-
-            ModLogger.Debug($"Queue empty, using predefined name: '{predefinedName}'");
-            return predefinedName;
+            return null;
         }
 
         /// <summary>
@@ -171,7 +155,6 @@ namespace UTSTwitchIntegration.Game
                 return;
             }
 
-            // Reset warning flag when TheaterController becomes available
             if (this.hasLoggedTheaterControllerNullWarning)
             {
                 this.hasLoggedTheaterControllerNullWarning = false;
@@ -191,20 +174,21 @@ namespace UTSTwitchIntegration.Game
                 return;
             }
 
-            // Reset warning flag when TheaterController is valid
             if (this.hasLoggedTheaterControllerInvalidWarning)
             {
                 this.hasLoggedTheaterControllerInvalidWarning = false;
             }
 
-            ViewerInfo viewer = config.SelectionMethod == QueueSelectionMethod.Random
-                ? this.queue.DequeueRandom()
-                : this.queue.Dequeue();
+            this.queue.SetSelectionMethod(config.SelectionMethod);
+
+            ViewerInfo viewer = this.queue.GetNext();
 
             if (viewer == null || string.IsNullOrWhiteSpace(viewer.Username))
             {
                 return;
             }
+
+            this.queue.MarkUsernameInUse(viewer.Username);
 
             try
             {
@@ -246,11 +230,19 @@ namespace UTSTwitchIntegration.Game
             }
         }
 
+        public static bool HasPendingUsername()
+        {
+            lock (PendingUsernameLock)
+            {
+                return !string.IsNullOrEmpty(pendingUsername);
+            }
+        }
+
         /// <summary>
         /// Get and clear the pending username for a spawn
         /// </summary>
         /// <returns>Username if spawn is pending, null otherwise</returns>
-        public static string GetAndClearPendingUsername()
+        private static string GetAndClearPendingUsername()
         {
             lock (PendingUsernameLock)
             {
@@ -261,30 +253,234 @@ namespace UTSTwitchIntegration.Game
         }
 
         /// <summary>
+        /// Check if a customer already has a username assigned
+        /// </summary>
+        private bool HasUsername(CustomerController customer)
+        {
+            return customer && this.spawnedViewers.ContainsKey(customer);
+        }
+
+        /// <summary>
+        /// Get the Twitch username assigned to a customer, if any
+        /// </summary>
+        /// <param name="customer">Customer to check</param>
+        /// <returns>Twitch username if assigned, null otherwise</returns>
+        public string GetUsernameForCustomer(CustomerController customer)
+        {
+            if (!customer)
+                return null;
+
+            if (this.spawnedViewers.TryGetValue(customer, out string username))
+                return username;
+
+            return null;
+        }
+
+        /// <summary>
+        /// Try to overwrite a random existing NPC's name with a Twitch username
+        /// Only overwrites NPCs that don't already have Twitch usernames
+        /// </summary>
+        /// <param name="username">Twitch username to assign</param>
+        /// <returns>True if successfully overwrote an NPC, false if no suitable NPC found</returns>
+        public bool TryOverwriteRandomNPC(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return false;
+            }
+
+            TheaterController theaterController = TheaterController.Instance;
+            if (theaterController == null)
+            {
+                return false;
+            }
+
+            var customers = TheaterController.Customers;
+            if (customers == null || customers.Count == 0)
+            {
+                return false;
+            }
+
+            var eligibleCustomers = new List<CustomerController>();
+            foreach (var customer in customers)
+            {
+                if (customer == null || !customer.gameObject || !customer.gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+
+                if (this.HasUsername(customer))
+                {
+                    continue;
+                }
+
+                // Skip if in certain invalid states (leaving, knocked out, etc.)
+                AIState currentState = customer.CurrentState;
+                if (currentState != null)
+                {
+                    string stateTypeName = currentState.GetType().Name;
+                    if (stateTypeName == "LeavingState" || 
+                        stateTypeName == "KnockedOutState" || 
+                        stateTypeName == "KnockedDownState")
+                    {
+                        continue;
+                    }
+                }
+
+                eligibleCustomers.Add(customer);
+            }
+
+            if (eligibleCustomers.Count == 0)
+            {
+                return false;
+            }
+
+            System.Random random = new System.Random();
+            int randomIndex = random.Next(eligibleCustomers.Count);
+            CustomerController targetCustomer = eligibleCustomers[randomIndex];
+
+            bool success = this.StoreViewerUsername(targetCustomer, username);
+            
+            if (success)
+            {
+                ModLogger.Info($"Overwrote NPC (Customer ID={targetCustomer.CustomerId}) with Twitch username '{username}'");
+                
+                var customerName = targetCustomer.GetComponent<Il2CppGame.Customers.CustomerName>();
+                if (customerName != null)
+                {
+                    customerName.SetName(true);
+                }
+            }
+
+            return success;
+        }
+
+        /// <summary>
+        /// Attempt to assign a username to a customer if they don't already have one
+        /// </summary>
+        /// <param name="customer"></param>
+        /// <param name="usePendingUsername">If true, use pending username for immediate spawns</param>
+        public bool TryAssignUsernameToCustomer(CustomerController customer, bool usePendingUsername = false)
+        {
+            if (!customer)
+            {
+                return false;
+            }
+
+            if (this.HasUsername(customer))
+            {
+                return false;
+            }
+
+            string username = null;
+
+            if (usePendingUsername)
+            {
+                username = GetAndClearPendingUsername();
+            }
+
+            if (string.IsNullOrEmpty(username))
+            {
+                username = this.GetNextUsernameFromPool();
+            }
+
+            if (string.IsNullOrEmpty(username))
+            {
+                return false;
+            }
+
+            return this.StoreViewerUsername(customer, username);
+        }
+
+        /// <summary>
         /// Store username mapping for a spawned customer
         /// </summary>
         /// <param name="customer">Spawned customer</param>
         /// <param name="username">Twitch username</param>
-        public void StoreViewerUsername(CustomerController customer, string username)
+        /// <returns>True if this was a new entry, false if customer already had a username</returns>
+        private bool StoreViewerUsername(CustomerController customer, string username)
+        {
+            if (!customer)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return false;
+            }
+
+            if (this.spawnedViewers.TryAdd(customer, username))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Handle cleanup when a customer is leaving/despawning
+        /// </summary>
+        /// <param name="customer">Customer that is leaving</param>
+        public void OnCustomerLeaving(CustomerController customer)
         {
             if (!customer)
             {
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(username))
+            if (this.spawnedViewers.TryRemove(customer, out string username))
+            {
+                if (!string.IsNullOrWhiteSpace(username))
+                {
+                    this.queue.MarkUsernameAvailable(username);
+
+                    ModLogger.Debug($"Customer '{username}' left - username marked as available");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Periodic cleanup check to catch destroyed customers (fallback mechanism)
+        /// Should be called periodically (e.g., from Update or timer)
+        /// </summary>
+        public void PeriodicCleanupCheck()
+        {
+            float currentTime = Time.time;
+            if (currentTime - this.lastCleanupCheckTime < CLEANUP_CHECK_INTERVAL)
             {
                 return;
             }
 
-            if (this.spawnedViewers.TryAdd(customer, username))
+            this.lastCleanupCheckTime = currentTime;
+
+            var keysToRemove = new System.Collections.Generic.List<CustomerController>();
+
+            foreach (var kvp in this.spawnedViewers)
             {
-                ModLogger.Debug($"Stored username '{username}' for Customer ID={customer.CustomerId}");
+                CustomerController customer = kvp.Key;
+
+                if (customer == null ||
+                    !customer.gameObject ||
+                    !customer.gameObject.activeInHierarchy ||
+                    customer.transform == null)
+                {
+                    keysToRemove.Add(customer);
+                }
             }
-            else
+
+            foreach (var customer in keysToRemove)
             {
-                this.spawnedViewers[customer] = username;
-                ModLogger.Debug($"Username already stored for Customer ID={customer.CustomerId}, updating to '{username}'");
+                if (this.spawnedViewers.TryRemove(customer, out string username))
+                {
+                    if (!string.IsNullOrWhiteSpace(username))
+                    {
+                        this.queue.MarkUsernameAvailable(username);
+                        ModLogger.Debug($"Cleaned up destroyed customer '{username}' via periodic check");
+                    }
+                }
             }
         }
 
@@ -295,24 +491,16 @@ namespace UTSTwitchIntegration.Game
         {
             try
             {
-                int queueCount = this.queue.Count;
-                int spawnedCount = this.spawnedViewers.Count;
-
                 this.queue.Clear();
-                ModLogger.Debug($"Cleared viewer queue ({queueCount} viewers removed)");
-
                 this.spawnedViewers.Clear();
-                ModLogger.Debug($"Cleared spawned viewer tracking ({spawnedCount} tracked viewers removed)");
 
                 lock (PendingUsernameLock)
                 {
                     pendingUsername = null;
                 }
 
-                ModLogger.Debug("Cleared pending username");
-
                 this.lastSpawnTime = 0f;
-                ModLogger.Debug("Spawn manager cleanup completed");
+                this.lastCleanupCheckTime = 0f;
             }
             catch (System.Exception ex)
             {

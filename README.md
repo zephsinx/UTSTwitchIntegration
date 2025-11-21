@@ -8,13 +8,12 @@ usernames shown above them.
 - **Twitch Chat Integration** - Connect to your Twitch channel and listen for chat commands
 - **Viewer Spawning** - Viewers join your game as NPCs using the `!visit` command
 - **Two Spawn Modes**:
-    - Pool mode: Viewers are added to a pool and assigned to natural game spawns
-    - Immediate spawn: NPCs spawn instantly when viewers use commands (for testing)
+  - Pool mode: Viewers are added to a pool and assigned to natural game spawns
+  - Immediate spawn: NPCs spawn instantly when viewers use commands (for testing)
 - **Queue Selection** - Choose between Random or FIFO (First-In-First-Out) selection from the pool
 - **Permission System** - Restrict commands by permission level (Everyone, Subscriber, VIP, Moderator, Broadcaster)
 - **User Cooldowns** - Configurable per-user command cooldowns
 - **Username Display** - Twitch usernames appear above NPCs in-game
-- **Predefined Names** - Load predefined name lists when queue is empty
 - **Auto-Configuration** - Config file generates automatically on first launch
 
 ## Tech Stack
@@ -28,7 +27,7 @@ usernames shown above them.
 ## Requirements
 
 - [Ultimate Theater Simulator](https://store.steampowered.com/app/1541370/Ultimate_Theater_Simulator/) (tested with
-  v1.3.4, Build ID 20779152)
+  v1.3.5, Build ID 20884100)
 - MelonLoader 0.7.2-ci.2367 or above
 
 ## Installation
@@ -48,21 +47,19 @@ The mod generates a config file at `[Game Directory]/UserData/UTSTwitchIntegrati
 
 ### Key Settings
 
-| Setting                   | Type   | Default                         | Description                                                                            |
-|---------------------------|--------|---------------------------------|----------------------------------------------------------------------------------------|
-| `OAuthToken`              | string | ""                              | Your Twitch OAuth token for authentication (optional)                                  |
-| `ChannelName`             | string | ""                              | Twitch channel to connect to                                                           |
-| `CommandPrefix`           | string | "!"                             | Prefix for chat commands                                                               |
-| `VisitCommandName`        | string | "visit"                         | Name of the visit command                                                              |
-| `VisitPermission`         | int    | 0                               | Minimum permission level (0=Everyone, 1=Subscriber, 2=VIP, 3=Moderator, 4=Broadcaster) |
-| `Enabled`                 | bool   | true                            | Enable/disable Twitch integration                                                      |
-| `EnableImmediateSpawn`    | bool   | false                           | Enable immediate spawning (for testing)                                                |
-| `MaxPoolSize`             | int    | 300                             | Maximum pool size (0 = unlimited)                                                      |
-| `PoolTimeoutSeconds`      | int    | 300                             | Pool entry timeout in seconds (0 = no timeout)                                         |
-| `SelectionMethod`         | int    | 0                               | Selection method (0=Random, 1=FIFO)                                                    |
-| `UserCooldownSeconds`     | int    | 60                              | Cooldown between commands per user (0 = disabled)                                      |
-| `EnablePredefinedNames`   | bool   | false                           | Use predefined names when queue is empty                                               |
-| `PredefinedNamesFilePath` | string | "UserData/predefined_names.txt" | Path to predefined names file                                                          |
+| Setting                | Type   | Default | Description                                                                            |
+| ---------------------- | ------ | ------- | -------------------------------------------------------------------------------------- |
+| `OAuthToken`           | string | ""      | Your Twitch OAuth token for authentication (optional)                                  |
+| `ChannelName`          | string | ""      | Twitch channel to connect to                                                           |
+| `CommandPrefix`        | string | "!"     | Prefix for chat commands                                                               |
+| `VisitCommandName`     | string | "visit" | Name of the visit command                                                              |
+| `VisitPermission`      | int    | 0       | Minimum permission level (0=Everyone, 1=Subscriber, 2=VIP, 3=Moderator, 4=Broadcaster) |
+| `Enabled`              | bool   | true    | Enable/disable Twitch integration                                                      |
+| `EnableImmediateSpawn` | bool   | false   | Enable immediate spawning (for testing)                                                |
+| `MaxPoolSize`          | int    | 300     | Maximum pool size (0 = unlimited)                                                      |
+| `PoolTimeoutSeconds`   | int    | 300     | Pool entry timeout in seconds (0 = no timeout)                                         |
+| `SelectionMethod`      | int    | 0       | Selection method (0=Random, 1=FIFO)                                                    |
+| `UserCooldownSeconds`  | int    | 60      | Cooldown between commands per user (0 = disabled)                                      |
 
 ### Getting a Twitch OAuth Token
 
@@ -99,8 +96,8 @@ needed.
 2. **Command Parsing**: When viewers type `!visit` in chat, the mod parses the command
 3. **Queue Management**: Viewers are added to a queue (with duplicate checking)
 4. **Spawning**:
-    - In pool mode, viewers are assigned to NPCs as they naturally spawn in the game
-    - In immediate mode, NPCs spawn instantly (for testing)
+   - In pool mode, viewers are assigned to NPCs as they naturally spawn in the game
+   - In immediate mode, NPCs spawn instantly (for testing)
 5. **Display**: A TextMeshPro element displays the viewer's username above their NPC
 
 ## Troubleshooting

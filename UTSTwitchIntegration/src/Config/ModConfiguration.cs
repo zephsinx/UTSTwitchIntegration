@@ -66,6 +66,12 @@ namespace UTSTwitchIntegration.Config
         public bool EnableImmediateSpawn { get; set; }
 
         /// <summary>
+        /// When enabled, overwrite random existing NPC names when !visit is received and queue is empty
+        /// If queue has names waiting, names are added to queue instead (respects queue order)
+        /// </summary>
+        public bool OverwriteRandomNPCOnVisit { get; set; } = true;
+
+        /// <summary>
         /// Maximum pool size (0 = unlimited)
         /// </summary>
         public int MaxPoolSize { get; set; } = 300;
@@ -85,16 +91,6 @@ namespace UTSTwitchIntegration.Config
         /// How long users must wait between !visit commands
         /// </summary>
         public int UserCooldownSeconds { get; set; } = 60;
-
-        /// <summary>
-        /// Enable predefined names when queue is empty
-        /// </summary>
-        public bool EnablePredefinedNames { get; set; }
-
-        /// <summary>
-        /// Path to predefined names file (one name per line)
-        /// </summary>
-        public string PredefinedNamesFilePath { get; set; } = "UserData/predefined_names.txt";
 
         /// <summary>
         /// Log verbosity level (0=Error, 1=Warning, 2=Info, 3=Debug)

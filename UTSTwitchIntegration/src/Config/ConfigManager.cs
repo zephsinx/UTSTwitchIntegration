@@ -26,24 +26,18 @@ namespace UTSTwitchIntegration.Config
         private static MelonPreferences_Entry<int> poolTimeoutSeconds;
         private static MelonPreferences_Entry<int> selectionMethod;
         private static MelonPreferences_Entry<int> userCooldownSeconds;
-        private static MelonPreferences_Entry<bool> enablePredefinedNames;
-        private static MelonPreferences_Entry<string> predefinedNamesFilePath;
         private static MelonPreferences_Entry<int> logLevel;
 
         public static void Initialize()
         {
             try
             {
-                // Create or get preferences category
                 category = MelonPreferences.CreateCategory("UTSTwitchIntegration");
                 category.SetFilePath("UserData/UTSTwitchIntegration.cfg", false, false);
 
                 // Load existing config file FIRST (if it exists) to preserve user values
-                // This prevents MelonLoader from overwriting user edits
                 MelonPreferences.Load();
 
-                // Create preferences entries with defaults
-                // If config file exists, these defaults will be overridden by loaded values
                 oauthToken = category.CreateEntry(
                     "OAuthToken",
                     "",
@@ -115,28 +109,14 @@ namespace UTSTwitchIntegration.Config
                     "User Cooldown Seconds",
                     "How long users must wait between !visit commands in seconds (0 = disabled). Default: 60");
 
-                enablePredefinedNames = category.CreateEntry(
-                    "EnablePredefinedNames",
-                    false,
-                    "Enable Predefined Names",
-                    "Enable predefined names when queue is empty. Default: false");
-
-                predefinedNamesFilePath = category.CreateEntry(
-                    "PredefinedNamesFilePath",
-                    "UserData/predefined_names.txt",
-                    "Predefined Names File Path",
-                    "Path to predefined names file (one name per line). Default: UserData/predefined_names.txt");
-
                 logLevel = category.CreateEntry(
                     "LogLevel",
                     (int)LogLevel.Info,
                     "Log Level",
                     "Log verbosity level (0=Error, 1=Warning, 2=Info, 3=Debug). Default: 2 (Info)");
 
-                // Load configuration into model
                 LoadConfiguration();
 
-                // Validate configuration
                 ConfigValidationResult validationResult = ValidateConfiguration();
                 if (!validationResult.IsValid)
                 {
@@ -147,7 +127,6 @@ namespace UTSTwitchIntegration.Config
                     Logger.Warning(validationResult.GetFormattedMessage());
                 }
 
-                // Log configuration summary
                 LogConfigurationSummary();
 
                 Logger.Debug("Configuration system initialized");
@@ -174,7 +153,6 @@ namespace UTSTwitchIntegration.Config
             {
                 config = new ModConfiguration
                 {
-                    // Load raw values from file (don't normalize here to preserve user input)
                     OAuthToken = oauthToken.Value ?? "",
                     ChannelName = channelName.Value ?? "",
                     CommandPrefix = commandPrefix.Value ?? "!",
@@ -186,8 +164,6 @@ namespace UTSTwitchIntegration.Config
                     PoolTimeoutSeconds = poolTimeoutSeconds.Value,
                     SelectionMethod = (QueueSelectionMethod)selectionMethod.Value,
                     UserCooldownSeconds = userCooldownSeconds.Value,
-                    EnablePredefinedNames = enablePredefinedNames.Value,
-                    PredefinedNamesFilePath = predefinedNamesFilePath.Value ?? "UserData/predefined_names.txt",
                     LogLevel = logLevel.Value,
                 };
             }
@@ -345,22 +321,6 @@ namespace UTSTwitchIntegration.Config
                 logLevel.Value = (int)LogLevel.Info;
             }
 
-            if (modConfiguration.EnablePredefinedNames)
-            {
-                if (string.IsNullOrWhiteSpace(modConfiguration.PredefinedNamesFilePath))
-                {
-                    result.AddError(
-                        "EnablePredefinedNames is enabled but PredefinedNamesFilePath is not set. " +
-                        "Please provide a valid file path.");
-                }
-                else if (!System.IO.File.Exists(modConfiguration.PredefinedNamesFilePath))
-                {
-                    result.AddWarning(
-                        $"Predefined names file not found at path: {modConfiguration.PredefinedNamesFilePath}. " +
-                        "The file will be created automatically if it doesn't exist, or you can create it manually with one name per line.");
-                }
-            }
-
             return result;
         }
 
@@ -398,7 +358,6 @@ namespace UTSTwitchIntegration.Config
                 string selectionMethodName = modConfiguration.SelectionMethod == QueueSelectionMethod.Random ? "Random" : "FIFO";
                 Logger.Debug($"Queue Selection Method: {selectionMethodName}");
                 Logger.Debug($"User Cooldown: {(modConfiguration.UserCooldownSeconds == 0 ? "Disabled" : $"{modConfiguration.UserCooldownSeconds} seconds")}");
-                Logger.Debug($"Predefined Names: {(modConfiguration.EnablePredefinedNames ? $"Enabled ({modConfiguration.PredefinedNamesFilePath})" : "Disabled")}");
             }
 
             Logger.Debug("============================");

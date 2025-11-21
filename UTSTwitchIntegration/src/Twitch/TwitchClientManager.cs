@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using TwitchLib.Client;
 using TwitchLib.Client.Events;
 using TwitchLib.Client.Models;
@@ -10,7 +11,7 @@ using UTSTwitchIntegration.Utils;
 namespace UTSTwitchIntegration.Twitch
 {
     /// <summary>
-    /// Twitch client manager for handling Twitch connections and messages
+    /// Manages Twitch IRC connection, message processing, and automatic reconnection
     /// </summary>
     public class TwitchClientManager
     {
@@ -27,9 +28,9 @@ namespace UTSTwitchIntegration.Twitch
         /// </summary>
         private int reconnectAttempts;
 
-        private float reconnectScheduledTime;
+        private volatile float reconnectScheduledTime;
         private const int MAX_RECONNECT_ATTEMPTS = 10;
-        private bool tokenInvalid;
+        private volatile bool tokenInvalid;
 
         public event Action<TwitchCommand> OnCommandReceived;
 
@@ -180,11 +181,11 @@ namespace UTSTwitchIntegration.Twitch
                 return;
             }
 
-            this.reconnectAttempts++;
-            float backoff = UnityEngine.Mathf.Min(UnityEngine.Mathf.Pow(2, this.reconnectAttempts - 1), 30f);
+            int newAttemptCount = Interlocked.Increment(ref this.reconnectAttempts);
+            float backoff = UnityEngine.Mathf.Min(UnityEngine.Mathf.Pow(2, newAttemptCount - 1), 30f);
             this.reconnectScheduledTime = UnityEngine.Time.time + backoff;
 
-            Logger.Debug($"Reconnecting in {backoff:F1} seconds (attempt {this.reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})...");
+            Logger.Debug($"Reconnecting in {backoff:F1} seconds (attempt {newAttemptCount}/{MAX_RECONNECT_ATTEMPTS})...");
         }
 
         public void CheckAndProcessReconnect()

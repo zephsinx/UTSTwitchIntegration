@@ -1,12 +1,11 @@
 using MelonLoader;
-using Il2CppInterop.Runtime.Injection;
 using Il2CppGame.Shop;
 using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Game;
 using UTSTwitchIntegration.Twitch;
 using UTSTwitchIntegration.Utils;
 
-[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.0.0", "zephsinx")]
+[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.1.0", "zephsinx")]
 [assembly: MelonGame("RakTwo_SteelBox", "UltimateTheaterSimulator")]
 
 namespace UTSTwitchIntegration
@@ -28,35 +27,11 @@ namespace UTSTwitchIntegration
 
             try
             {
-                ClassInjector.RegisterTypeInIl2Cpp<UsernameDisplayUpdater>();
-                Logger.Debug("Registered UsernameDisplayUpdater with Il2CppInterop");
-            }
-            catch (System.Exception ex)
-            {
-                Logger.Error($"Failed to register UsernameDisplayUpdater with Il2CppInterop: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
-            }
-
-            try
-            {
                 ConfigManager.Initialize();
                 ModConfiguration config = ConfigManager.GetConfiguration();
                 Logger.SetLogLevel((LogLevel)config.LogLevel);
                 Logger.Debug("Configuration loaded");
                 Logger.Debug($"Twitch integration enabled: {config.Enabled}");
-
-                if (config.EnablePredefinedNames)
-                {
-                    bool loaded = PredefinedNamesManager.Instance.LoadNamesFromFile(config.PredefinedNamesFilePath);
-                    if (loaded)
-                    {
-                        Logger.Info($"Predefined names loaded: {PredefinedNamesManager.Instance.Count} names available");
-                    }
-                    else
-                    {
-                        Logger.Warning("Failed to load predefined names - feature disabled");
-                    }
-                }
             }
             catch (System.Exception ex)
             {
@@ -129,6 +104,9 @@ namespace UTSTwitchIntegration
                 this.twitchClient.CheckAndProcessReconnect();
             }
 
+            // Periodic cleanup check for destroyed customers (fallback mechanism)
+            this.spawnManager?.PeriodicCleanupCheck();
+
             ModConfiguration config = ConfigManager.GetConfiguration();
             if (config.EnableImmediateSpawn)
             {
@@ -170,16 +148,6 @@ namespace UTSTwitchIntegration
                 }
             }
 
-            try
-            {
-                UsernameDisplayManager.CleanupAllDisplays();
-                Logger.Debug("Username displays cleanup completed");
-            }
-            catch (System.Exception ex)
-            {
-                Logger.Error($"Error cleaning up username displays: {ex.Message}");
-            }
-
             if (this.harmony != null)
             {
                 try
@@ -212,6 +180,21 @@ namespace UTSTwitchIntegration
 
                     if (this.spawnManager != null)
                     {
+                        // Only try to overwrite if queue is empty and setting is enabled
+                        bool attemptedOverwrite = false;
+                        if (config.OverwriteRandomNPCOnVisit && this.spawnManager.QueueCount == 0)
+                        {
+                            attemptedOverwrite = this.spawnManager.TryOverwriteRandomNPC(command.Username);
+
+                            if (attemptedOverwrite)
+                            {
+                                Logger.Info($"Overwrote random NPC with username '{command.Username}'");
+                                this.cooldownManager?.RecordCommandUsage(command.Username);
+                                return; // Success, don't add to queue
+                            }
+                        }
+
+                        // If overwrite didn't happen or failed, use normal queue behavior
                         bool queued = this.spawnManager.QueueViewerForSpawn(command.Username);
 
                         this.cooldownManager?.RecordCommandUsage(command.Username);

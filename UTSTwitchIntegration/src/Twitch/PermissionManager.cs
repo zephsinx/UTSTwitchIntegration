@@ -6,7 +6,7 @@ using UTSTwitchIntegration.Utils;
 namespace UTSTwitchIntegration.Twitch
 {
     /// <summary>
-    /// Twitch user permission manager
+    /// Checks Twitch user permissions based on badges (broadcaster, moderator, VIP, subscriber)
     /// </summary>
     public static class PermissionManager
     {

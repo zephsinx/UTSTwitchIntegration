@@ -3,7 +3,6 @@ using System.Linq;
 using TwitchLib.Client.Models;
 using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Models;
-using UTSTwitchIntegration.Utils;
 
 namespace UTSTwitchIntegration.Twitch
 {
@@ -60,7 +59,6 @@ namespace UTSTwitchIntegration.Twitch
                 };
             }
 
-            Logger.Debug($"Unknown command: {commandName} from user {message.Username}");
             return null;
         }
     }
