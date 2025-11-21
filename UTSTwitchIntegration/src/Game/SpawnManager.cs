@@ -7,7 +7,6 @@ using UnityEngine;
 using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Models;
 using UTSTwitchIntegration.Queue;
-using UTSTwitchIntegration.Utils;
 using ModLogger = UTSTwitchIntegration.Utils.Logger;
 
 namespace UTSTwitchIntegration.Game
@@ -214,7 +213,7 @@ namespace UTSTwitchIntegration.Game
                 }
 
                 this.spawnedViewers.TryAdd(customer, viewer.Username);
-                ModLogger.Info($"Successfully spawned viewer '{viewer.Username}' as Customer ID={customer.CustomerId}");
+                ModLogger.Debug($"Successfully spawned viewer '{viewer.Username}' as Customer ID={customer.CustomerId}");
 
                 this.lastSpawnTime = currentTime;
             }
@@ -267,13 +266,9 @@ namespace UTSTwitchIntegration.Game
         /// <returns>Twitch username if assigned, null otherwise</returns>
         public string GetUsernameForCustomer(CustomerController customer)
         {
-            if (!customer)
-                return null;
-
-            if (this.spawnedViewers.TryGetValue(customer, out string username))
-                return username;
-
-            return null;
+            return !customer
+                ? null
+                : this.spawnedViewers.GetValueOrDefault(customer);
         }
 
         /// <summary>
@@ -295,14 +290,14 @@ namespace UTSTwitchIntegration.Game
                 return false;
             }
 
-            var customers = TheaterController.Customers;
+            Il2CppSystem.Collections.Generic.List<CustomerController> customers = TheaterController.Customers;
             if (customers == null || customers.Count == 0)
             {
                 return false;
             }
 
-            var eligibleCustomers = new List<CustomerController>();
-            foreach (var customer in customers)
+            List<CustomerController> eligibleCustomers = new List<CustomerController>();
+            foreach (CustomerController customer in customers)
             {
                 if (customer == null || !customer.gameObject || !customer.gameObject.activeInHierarchy)
                 {
@@ -319,8 +314,8 @@ namespace UTSTwitchIntegration.Game
                 if (currentState != null)
                 {
                     string stateTypeName = currentState.GetType().Name;
-                    if (stateTypeName == "LeavingState" || 
-                        stateTypeName == "KnockedOutState" || 
+                    if (stateTypeName == "LeavingState" ||
+                        stateTypeName == "KnockedOutState" ||
                         stateTypeName == "KnockedDownState")
                     {
                         continue;
@@ -339,20 +334,18 @@ namespace UTSTwitchIntegration.Game
             int randomIndex = random.Next(eligibleCustomers.Count);
             CustomerController targetCustomer = eligibleCustomers[randomIndex];
 
-            bool success = this.StoreViewerUsername(targetCustomer, username);
-            
-            if (success)
+            if (!this.StoreViewerUsername(targetCustomer, username))
+                return false;
+
+            ModLogger.Debug($"Overwrote NPC (Customer ID={targetCustomer.CustomerId}) with Twitch username '{username}'");
+
+            CustomerName customerName = targetCustomer.GetComponent<CustomerName>();
+            if (customerName)
             {
-                ModLogger.Info($"Overwrote NPC (Customer ID={targetCustomer.CustomerId}) with Twitch username '{username}'");
-                
-                var customerName = targetCustomer.GetComponent<Il2CppGame.Customers.CustomerName>();
-                if (customerName != null)
-                {
-                    customerName.SetName(true);
-                }
+                customerName.SetName(true);
             }
 
-            return success;
+            return true;
         }
 
         /// <summary>
@@ -456,9 +449,9 @@ namespace UTSTwitchIntegration.Game
 
             this.lastCleanupCheckTime = currentTime;
 
-            var keysToRemove = new System.Collections.Generic.List<CustomerController>();
+            List<CustomerController> keysToRemove = new List<CustomerController>();
 
-            foreach (var kvp in this.spawnedViewers)
+            foreach (KeyValuePair<CustomerController, string> kvp in this.spawnedViewers)
             {
                 CustomerController customer = kvp.Key;
 
@@ -471,7 +464,7 @@ namespace UTSTwitchIntegration.Game
                 }
             }
 
-            foreach (var customer in keysToRemove)
+            foreach (CustomerController customer in keysToRemove)
             {
                 if (this.spawnedViewers.TryRemove(customer, out string username))
                 {

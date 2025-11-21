@@ -63,15 +63,15 @@ namespace UTSTwitchIntegration.Config
 
                 visitCommandName = category.CreateEntry(
                     "VisitCommandName",
-                    "visit",
+                    "cinema",
                     "Visit Command Name",
-                    "Name of the visit command (default: visit)");
+                    "Name of the visit command (default: cinema)");
 
                 visitPermission = category.CreateEntry(
                     "VisitPermission",
                     (int)PermissionLevel.Everyone,
                     "Visit Permission Level",
-                    "Minimum permission level for !visit command (0=Everyone, 1=Subscriber, 2=VIP, 3=Moderator, 4=Broadcaster)");
+                    "Minimum permission level for !cinema command (0=Everyone, 1=Subscriber, 2=VIP, 3=Moderator, 4=Broadcaster)");
 
                 enabled = category.CreateEntry(
                     "Enabled",
@@ -83,7 +83,7 @@ namespace UTSTwitchIntegration.Config
                     "EnableImmediateSpawn",
                     false,
                     "Enable Immediate Spawn",
-                    "Enable immediate spawning for testing (spawns NPCs immediately when !visit used). Default: false");
+                    "Enable immediate spawning for testing (spawns NPCs immediately when !cinema used). Default: false");
 
                 maxPoolSize = category.CreateEntry(
                     "MaxPoolSize",
@@ -107,7 +107,7 @@ namespace UTSTwitchIntegration.Config
                     "UserCooldownSeconds",
                     60,
                     "User Cooldown Seconds",
-                    "How long users must wait between !visit commands in seconds (0 = disabled). Default: 60");
+                    "How long users must wait between !cinema commands in seconds (0 = disabled). Default: 60");
 
                 logLevel = category.CreateEntry(
                     "LogLevel",
@@ -156,7 +156,7 @@ namespace UTSTwitchIntegration.Config
                     OAuthToken = oauthToken.Value ?? "",
                     ChannelName = channelName.Value ?? "",
                     CommandPrefix = commandPrefix.Value ?? "!",
-                    VisitCommandName = visitCommandName.Value ?? "visit",
+                    VisitCommandName = visitCommandName.Value ?? "cinema",
                     VisitPermission = (PermissionLevel)visitPermission.Value,
                     Enabled = enabled.Value,
                     EnableImmediateSpawn = enableImmediateSpawn.Value,
@@ -258,7 +258,7 @@ namespace UTSTwitchIntegration.Config
             {
                 result.AddError(
                     "Visit command name is empty. " +
-                    "Please set VisitCommandName in the config file (default: 'visit').");
+                    "Please set VisitCommandName in the config file (default: 'cinema').");
             }
             else
             {

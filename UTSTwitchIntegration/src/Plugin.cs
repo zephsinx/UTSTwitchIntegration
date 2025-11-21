@@ -5,7 +5,7 @@ using UTSTwitchIntegration.Game;
 using UTSTwitchIntegration.Twitch;
 using UTSTwitchIntegration.Utils;
 
-[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.1.0", "zephsinx")]
+[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.1.1", "zephsinx")]
 [assembly: MelonGame("RakTwo_SteelBox", "UltimateTheaterSimulator")]
 
 namespace UTSTwitchIntegration
@@ -181,16 +181,13 @@ namespace UTSTwitchIntegration
                     if (this.spawnManager != null)
                     {
                         // Only try to overwrite if queue is empty and setting is enabled
-                        bool attemptedOverwrite = false;
                         if (config.OverwriteRandomNPCOnVisit && this.spawnManager.QueueCount == 0)
                         {
-                            attemptedOverwrite = this.spawnManager.TryOverwriteRandomNPC(command.Username);
-
-                            if (attemptedOverwrite)
+                            if (this.spawnManager.TryOverwriteRandomNPC(command.Username))
                             {
-                                Logger.Info($"Overwrote random NPC with username '{command.Username}'");
+                                Logger.Debug($"Overwrote random NPC with username '{command.Username}'");
                                 this.cooldownManager?.RecordCommandUsage(command.Username);
-                                return; // Success, don't add to queue
+                                return;
                             }
                         }
 
