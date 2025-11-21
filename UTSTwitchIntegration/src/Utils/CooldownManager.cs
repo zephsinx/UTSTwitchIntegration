@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 namespace UTSTwitchIntegration.Utils
 {
     /// <summary>
-    /// Cooldown manager for tracking per-user command cooldowns
+    /// Tracks per-user command cooldowns using normalized usernames and timestamps
     /// </summary>
     public class CooldownManager
     {

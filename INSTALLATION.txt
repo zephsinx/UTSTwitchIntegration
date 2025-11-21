@@ -6,7 +6,7 @@ PREREQUISITES
 -------------
 Before you start, make sure you have:
 
-1. Ultimate Theater Simulator (tested with v1.3.4, Build ID 20779152)
+1. Ultimate Theater Simulator (tested with v1.3.5, Build ID 20884100)
 2. A Twitch account for streaming
 3. Basic knowledge of your game's installation folder
 
@@ -133,8 +133,6 @@ MaxPoolSize = 300
 PoolTimeoutSeconds = 300
 SelectionMethod = 0
 UserCooldownSeconds = 60
-EnablePredefinedNames = false
-PredefinedNamesFilePath = "UserData/predefined_names.txt"
 
 
 STEP 5: TEST THE INSTALLATION
@@ -189,21 +187,6 @@ SelectionMethod = 1
 
 0 = Random selection (default)
 1 = FIFO (first to type !visit spawns first)
-
-For Predefined Names:
----------------------
-1. Create a text file: [Game Directory]/UserData/predefined_names.txt
-
-2. Add names, one per line:
-   Alice
-   Bob
-   Charlie
-   David
-
-3. Set in config file:
-   EnablePredefinedNames = true
-
-When your queue is empty, the mod will use these names.
 
 
 COMMON ISSUES

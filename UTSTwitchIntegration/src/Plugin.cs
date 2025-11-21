@@ -1,20 +1,17 @@
 using MelonLoader;
-using Il2CppInterop.Runtime.Injection;
 using Il2CppGame.Shop;
 using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Game;
 using UTSTwitchIntegration.Twitch;
 using UTSTwitchIntegration.Utils;
 
-[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.0.0", "zephsinx")]
+[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.1.0", "zephsinx")]
 [assembly: MelonGame("RakTwo_SteelBox", "UltimateTheaterSimulator")]
 
 namespace UTSTwitchIntegration
 {
     public class Plugin : MelonMod
     {
-        private const LogLevel LOG_LEVEL = LogLevel.Info;
-
         private HarmonyLib.Harmony harmony;
         private const string HARMONY_ID = "com.uts.twitch-integration";
         private TwitchClientManager twitchClient;
@@ -24,41 +21,17 @@ namespace UTSTwitchIntegration
         public override void OnInitializeMelon()
         {
             Logger.Initialize(LoggerInstance);
-            Logger.SetLogLevel(LOG_LEVEL);
+            Logger.SetLogLevel(LogLevel.Info);
 
             Logger.Info("UTSTwitchIntegration mod loaded successfully!");
 
             try
             {
-                ClassInjector.RegisterTypeInIl2Cpp<UsernameDisplayUpdater>();
-                Logger.Debug("Registered UsernameDisplayUpdater with Il2CppInterop");
-            }
-            catch (System.Exception ex)
-            {
-                Logger.Error($"Failed to register UsernameDisplayUpdater with Il2CppInterop: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
-            }
-
-            try
-            {
                 ConfigManager.Initialize();
                 ModConfiguration config = ConfigManager.GetConfiguration();
-                Logger.Info("Configuration loaded");
+                Logger.SetLogLevel((LogLevel)config.LogLevel);
+                Logger.Debug("Configuration loaded");
                 Logger.Debug($"Twitch integration enabled: {config.Enabled}");
-
-                // Load predefined names if enabled
-                if (config.EnablePredefinedNames)
-                {
-                    bool loaded = PredefinedNamesManager.Instance.LoadNamesFromFile(config.PredefinedNamesFilePath);
-                    if (loaded)
-                    {
-                        Logger.Info($"Predefined names loaded: {PredefinedNamesManager.Instance.Count} names available");
-                    }
-                    else
-                    {
-                        Logger.Warning("Failed to load predefined names - feature disabled");
-                    }
-                }
             }
             catch (System.Exception ex)
             {
@@ -70,7 +43,7 @@ namespace UTSTwitchIntegration
             {
                 this.harmony = new HarmonyLib.Harmony(HARMONY_ID);
                 this.harmony.PatchAll();
-                Logger.Info("Harmony patches applied successfully");
+                Logger.Debug("Harmony patches applied successfully");
             }
             catch (System.Exception ex)
             {
@@ -131,6 +104,9 @@ namespace UTSTwitchIntegration
                 this.twitchClient.CheckAndProcessReconnect();
             }
 
+            // Periodic cleanup check for destroyed customers (fallback mechanism)
+            this.spawnManager?.PeriodicCleanupCheck();
+
             ModConfiguration config = ConfigManager.GetConfiguration();
             if (config.EnableImmediateSpawn)
             {
@@ -172,16 +148,6 @@ namespace UTSTwitchIntegration
                 }
             }
 
-            try
-            {
-                UsernameDisplayManager.CleanupAllDisplays();
-                Logger.Debug("Username displays cleanup completed");
-            }
-            catch (System.Exception ex)
-            {
-                Logger.Error($"Error cleaning up username displays: {ex.Message}");
-            }
-
             if (this.harmony != null)
             {
                 try
@@ -205,7 +171,6 @@ namespace UTSTwitchIntegration
                 ModConfiguration config = ConfigManager.GetConfiguration();
                 if (command.CommandName.Equals(config.VisitCommandName, System.StringComparison.OrdinalIgnoreCase))
                 {
-                    // Check cooldown before processing command
                     if (this.cooldownManager != null && this.cooldownManager.IsOnCooldown(command.Username, config.UserCooldownSeconds))
                     {
                         double remainingCooldown = this.cooldownManager.GetRemainingCooldown(command.Username, config.UserCooldownSeconds);
@@ -215,6 +180,21 @@ namespace UTSTwitchIntegration
 
                     if (this.spawnManager != null)
                     {
+                        // Only try to overwrite if queue is empty and setting is enabled
+                        bool attemptedOverwrite = false;
+                        if (config.OverwriteRandomNPCOnVisit && this.spawnManager.QueueCount == 0)
+                        {
+                            attemptedOverwrite = this.spawnManager.TryOverwriteRandomNPC(command.Username);
+
+                            if (attemptedOverwrite)
+                            {
+                                Logger.Info($"Overwrote random NPC with username '{command.Username}'");
+                                this.cooldownManager?.RecordCommandUsage(command.Username);
+                                return; // Success, don't add to queue
+                            }
+                        }
+
+                        // If overwrite didn't happen or failed, use normal queue behavior
                         bool queued = this.spawnManager.QueueViewerForSpawn(command.Username);
 
                         this.cooldownManager?.RecordCommandUsage(command.Username);
@@ -222,7 +202,7 @@ namespace UTSTwitchIntegration
                         if (queued)
                         {
                             string spawnMode = config.EnableImmediateSpawn ? "immediate spawn" : "pool";
-                            Logger.Info($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {this.spawnManager.QueueCount})");
+                            Logger.Debug($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {this.spawnManager.QueueCount})");
                         }
                         else
                         {
