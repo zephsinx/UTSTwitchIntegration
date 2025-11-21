@@ -125,7 +125,7 @@ Example configuration:
 OAuthToken = "oauth:1234567890abcdefghijklmnopqrst"
 ChannelName = "mychannel"
 CommandPrefix = "!"
-VisitCommandName = "visit"
+VisitCommandName = "cinema"
 VisitPermission = 0
 Enabled = true
 EnableImmediateSpawn = false
@@ -146,7 +146,7 @@ STEP 5: TEST THE INSTALLATION
 
 3. Open your Twitch channel in a browser
 
-4. Type in chat: !visit
+4. Type in chat: !cinema
 
 5. Check the console:
    - You should see: "Queued viewer '[your_username]' for spawn"
@@ -165,7 +165,7 @@ For Testing (Immediate Spawns):
 Set in config file:
 EnableImmediateSpawn = true
 
-This makes NPCs spawn instantly when viewers use !visit.
+This makes NPCs spawn instantly when viewers use !cinema.
 Useful for testing, but can spawn a lot of NPCs if many viewers use the command.
 
 For Subscriber-Only Mode:
@@ -186,7 +186,7 @@ Set in config file:
 SelectionMethod = 1
 
 0 = Random selection (default)
-1 = FIFO (first to type !visit spawns first)
+1 = FIFO (first to type !cinema spawns first)
 
 
 COMMON ISSUES
@@ -208,7 +208,7 @@ If the log shows "Configuration loaded" but there's no connection:
 - If using OAuth, verify the token is correct
 - Remove any extra spaces in the config file
 
-If viewers type !visit and nothing happens:
+If viewers type !cinema and nothing happens:
 - Check the console for error messages
 - In pool mode, wait for natural customer spawns
 - Try EnableImmediateSpawn = true for testing

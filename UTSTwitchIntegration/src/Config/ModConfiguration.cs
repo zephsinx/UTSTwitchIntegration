@@ -46,12 +46,12 @@ namespace UTSTwitchIntegration.Config
         public string CommandPrefix { get; set; } = "!";
 
         /// <summary>
-        /// Visit command name (default: visit)
+        /// Visit command name (default: cinema)
         /// </summary>
-        public string VisitCommandName { get; set; } = "visit";
+        public string VisitCommandName { get; set; } = "cinema";
 
         /// <summary>
-        /// Minimum permission level required for !visit command
+        /// Minimum permission level required for !cinema command
         /// </summary>
         public PermissionLevel VisitPermission { get; set; } = PermissionLevel.Everyone;
 
@@ -61,12 +61,12 @@ namespace UTSTwitchIntegration.Config
         public bool Enabled { get; set; } = true;
 
         /// <summary>
-        /// Enable immediate spawning for testing (spawns NPCs immediately when !visit used)
+        /// Enable immediate spawning for testing (spawns NPCs immediately when !cinema used)
         /// </summary>
         public bool EnableImmediateSpawn { get; set; }
 
         /// <summary>
-        /// When enabled, overwrite random existing NPC names when !visit is received and queue is empty
+        /// When enabled, overwrite random existing NPC names when !cinema is received and queue is empty
         /// If queue has names waiting, names are added to queue instead (respects queue order)
         /// </summary>
         public bool OverwriteRandomNPCOnVisit { get; set; } = true;
@@ -88,7 +88,7 @@ namespace UTSTwitchIntegration.Config
 
         /// <summary>
         /// User cooldown in seconds (0 = disabled)
-        /// How long users must wait between !visit commands
+        /// How long users must wait between !cinema commands
         /// </summary>
         public int UserCooldownSeconds { get; set; } = 60;
 

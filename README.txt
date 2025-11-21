@@ -1,5 +1,5 @@
 ================================================================================
-                        UTS TWITCH INTEGRATION v1.1.0
+                        UTS TWITCH INTEGRATION v1.1.1
 ================================================================================
 
 DESCRIPTION
@@ -7,14 +7,14 @@ DESCRIPTION
 This mod connects Ultimate Theater Simulator to your Twitch chat. Viewers can
 join the game as NPCs with their usernames displayed above their heads.
 
-When viewers type `!visit` in chat, they are added to a queue and can spawn as
+When viewers type `!cinema` in chat, they are added to a queue and can spawn as
 customers in the theater.
 
 
 FEATURES
 --------
 - Twitch chat integration
-- Viewers spawn as NPCs using the !visit command (customizable)
+- Viewers spawn as NPCs using the !cinema command (customizable)
 - Username display above NPCs
 - Two spawn modes: pool-based (regular NPC spawns) or immediate spawn on command
 - Queue selection: Random or First-In-First-Out
@@ -60,7 +60,7 @@ Set these values:
 
 COMMANDS
 --------
-!visit  -  Viewer joins as an NPC in the theater
+!cinema  -  Viewer joins as an NPC in the theater
 
 (Command name and prefix can be customized in the config file)
 
@@ -84,8 +84,8 @@ SelectionMethod      - 0=Random, 1=FIFO (default: 0)
 Command Settings:
 -----------------
 CommandPrefix        - Command prefix (default: !)
-VisitCommandName     - Visit command name (default: visit)
-VisitPermission      - Who can use !visit (default: 0)
+VisitCommandName     - Visit command name (default: cinema)
+VisitPermission      - Who can use !cinema (default: 0)
                        0=Everyone, 1=Subscriber, 2=VIP, 3=Mod, 4=Broadcaster
 UserCooldownSeconds  - Cooldown between commands (default: 60)
 
@@ -93,12 +93,12 @@ UserCooldownSeconds  - Cooldown between commands (default: 60)
 HOW IT WORKS
 ------------
 Pool Mode (Recommended):
-- Viewers type !visit and join the queue
+- Viewers type !cinema and join the queue
 - As the game spawns customers naturally, they're assigned viewer names
 - Random or FIFO selection from the queue
 
 Immediate Mode:
-- Viewers type !visit and spawn instantly
+- Viewers type !cinema and spawn instantly
 - Intended mainly for testing; it can spawn many NPCs quickly
 - Has a 5-second rate limit between spawns
 
@@ -139,6 +139,9 @@ CREDITS
 
 VERSION HISTORY
 ---------------
+v1.1.1 - Default command change
+- Changed default join command from !visit to !cinema and did some cleanup
+
 v1.1.0 - NPC name system integration
 - Integrated with game v1.3.5 native CustomerName functionality
 

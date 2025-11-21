@@ -2,7 +2,6 @@ using System;
 using HarmonyLib;
 using Il2CppGame.Customers;
 using Il2CppTMPro;
-using UTSTwitchIntegration.Game;
 using ModLogger = UTSTwitchIntegration.Utils.Logger;
 
 namespace UTSTwitchIntegration.Game.Patches
@@ -17,8 +16,8 @@ namespace UTSTwitchIntegration.Game.Patches
         /// <summary>
         /// Counter for throttling debug logs (only log every Nth call)
         /// </summary>
-        private static int callCount = 0;
-        private static int missingCustomerControllerCount = 0;
+        private static int callCount;
+        private static int missingCustomerControllerCount;
         private const int LOG_THROTTLE_INTERVAL = 10; // Log every 10th occurrence
 
         static CustomerNameSetNamePatch()
@@ -87,7 +86,7 @@ namespace UTSTwitchIntegration.Game.Patches
 
                 try
                 {
-                    ModLogger.Info($"[CustomerNameSetNamePatch] Setting Twitch username '{twitchUsername}' for Customer ID={customer.CustomerId}");
+                    ModLogger.Debug($"[CustomerNameSetNamePatch] Setting Twitch username '{twitchUsername}' for Customer ID={customer.CustomerId}");
 
                     __instance._currentName = twitchUsername;
                     ModLogger.Debug($"[CustomerNameSetNamePatch] Set _currentName property successfully");
@@ -96,7 +95,7 @@ namespace UTSTwitchIntegration.Game.Patches
                     if (nameText != null)
                     {
                         nameText.text = twitchUsername;
-                        ModLogger.Info($"[CustomerNameSetNamePatch] Successfully set name text to '{twitchUsername}' for Customer ID={customer.CustomerId}");
+                        ModLogger.Debug($"[CustomerNameSetNamePatch] Successfully set name text to '{twitchUsername}' for Customer ID={customer.CustomerId}");
                     }
                     else
                     {
