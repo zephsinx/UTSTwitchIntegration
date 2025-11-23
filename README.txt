@@ -1,5 +1,5 @@
 ================================================================================
-                        UTS TWITCH INTEGRATION v1.1.1
+                        UTS TWITCH INTEGRATION v1.1.2
 ================================================================================
 
 DESCRIPTION
@@ -25,7 +25,7 @@ FEATURES
 
 REQUIREMENTS
 ------------
-- Ultimate Theater Simulator (tested with v1.3.5, Build ID 20884100)
+- Ultimate Theater Simulator (tested with v1.3.5, Build ID 20906805)
 - MelonLoader 0.7.2-ci.2367 (nightly) or above
 - Twitch account for streaming (OAuth token recommended but optional)
 
@@ -139,6 +139,8 @@ CREDITS
 
 VERSION HISTORY
 ---------------
+v1.1.2 - Updated for game Build ID 20906805
+
 v1.1.1 - Default command change
 - Changed default join command from !visit to !cinema and did some cleanup
 

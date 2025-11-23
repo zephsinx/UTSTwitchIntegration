@@ -6,7 +6,7 @@ PREREQUISITES
 -------------
 Before you start, make sure you have:
 
-1. Ultimate Theater Simulator (tested with v1.3.5, Build ID 20884100)
+1. Ultimate Theater Simulator (tested with v1.3.5, Build ID 20906805)
 2. A Twitch account for streaming
 3. Basic knowledge of your game's installation folder
 

@@ -5,7 +5,7 @@ using UTSTwitchIntegration.Game;
 using UTSTwitchIntegration.Twitch;
 using UTSTwitchIntegration.Utils;
 
-[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.1.1", "zephsinx")]
+[assembly: MelonInfo(typeof(UTSTwitchIntegration.Plugin), "UTSTwitchIntegration", "1.1.2", "zephsinx")]
 [assembly: MelonGame("RakTwo_SteelBox", "UltimateTheaterSimulator")]
 
 namespace UTSTwitchIntegration
