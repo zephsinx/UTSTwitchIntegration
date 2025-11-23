@@ -27,7 +27,7 @@ usernames shown above them.
 ## Requirements
 
 - [Ultimate Theater Simulator](https://store.steampowered.com/app/1541370/Ultimate_Theater_Simulator/) (tested with
-  v1.3.5, Build ID 20884100)
+  v1.3.5, Build ID 20906805)
 - MelonLoader 0.7.2-ci.2367 or above
 
 ## Installation
@@ -48,7 +48,7 @@ The mod generates a config file at `[Game Directory]/UserData/UTSTwitchIntegrati
 ### Key Settings
 
 | Setting                | Type   | Default  | Description                                                                            |
-|------------------------|--------|----------|----------------------------------------------------------------------------------------|
+| ---------------------- | ------ | -------- | -------------------------------------------------------------------------------------- |
 | `OAuthToken`           | string | ""       | Your Twitch OAuth token for authentication (optional)                                  |
 | `ChannelName`          | string | ""       | Twitch channel to connect to                                                           |
 | `CommandPrefix`        | string | "!"      | Prefix for chat commands                                                               |
@@ -57,9 +57,10 @@ The mod generates a config file at `[Game Directory]/UserData/UTSTwitchIntegrati
 | `Enabled`              | bool   | true     | Enable/disable Twitch integration                                                      |
 | `EnableImmediateSpawn` | bool   | false    | Enable immediate spawning (for testing)                                                |
 | `MaxPoolSize`          | int    | 300      | Maximum pool size (0 = unlimited)                                                      |
-| `PoolTimeoutSeconds`   | int    | 300      | Pool entry timeout in seconds (0 = no timeout)                                         |
+| `PoolTimeoutSeconds`   | int    | 0        | Pool entry timeout in seconds (0 = no timeout)                                         |
 | `SelectionMethod`      | int    | 0        | Selection method (0=Random, 1=FIFO)                                                    |
 | `UserCooldownSeconds`  | int    | 60       | Cooldown between commands per user (0 = disabled)                                      |
+| `LogLevel`             | int    | 2        | Log verbosity level (0=Error, 1=Warning, 2=Info, 3=Debug)                              |
 
 ### Getting a Twitch OAuth Token
 
