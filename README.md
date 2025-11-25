@@ -27,7 +27,7 @@ usernames shown above them.
 ## Requirements
 
 - [Ultimate Theater Simulator](https://store.steampowered.com/app/1541370/Ultimate_Theater_Simulator/) (tested with
-  v1.3.5, Build ID 20906805)
+  v1.3.5, Build ID 20923223)
 - MelonLoader 0.7.2-ci.2367 or above
 
 ## Installation
