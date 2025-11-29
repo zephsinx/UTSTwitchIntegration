@@ -19,7 +19,7 @@ namespace UTSTwitchIntegration.Twitch
         {
             if (message == null)
             {
-                Logger.Warning("Permission check failed: message is null");
+                ModLogger.Warning("Permission check failed: message is null");
                 return false;
             }
 

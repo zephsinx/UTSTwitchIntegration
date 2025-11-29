@@ -20,35 +20,35 @@ namespace UTSTwitchIntegration
 
         public override void OnInitializeMelon()
         {
-            Logger.Initialize(LoggerInstance);
-            Logger.SetLogLevel(LogLevel.Info);
+            ModLogger.Initialize(LoggerInstance);
+            ModLogger.SetLogLevel(LogLevel.Info);
 
-            Logger.Info("UTSTwitchIntegration mod loaded successfully!");
+            ModLogger.Info("UTSTwitchIntegration mod loaded successfully!");
 
             try
             {
                 ConfigManager.Initialize();
                 ModConfiguration config = ConfigManager.GetConfiguration();
-                Logger.SetLogLevel((LogLevel)config.LogLevel);
-                Logger.Debug("Configuration loaded");
-                Logger.Debug($"Twitch integration enabled: {config.Enabled}");
+                ModLogger.SetLogLevel((LogLevel)config.LogLevel);
+                ModLogger.Debug("Configuration loaded");
+                ModLogger.Debug($"Twitch integration enabled: {config.Enabled}");
             }
             catch (System.Exception ex)
             {
-                Logger.Error($"Failed to initialize configuration: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Failed to initialize configuration: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
 
             try
             {
                 this.harmony = new HarmonyLib.Harmony(HARMONY_ID);
                 this.harmony.PatchAll();
-                Logger.Debug("Harmony patches applied successfully");
+                ModLogger.Debug("Harmony patches applied successfully");
             }
             catch (System.Exception ex)
             {
-                Logger.Error($"Failed to apply Harmony patches: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Failed to apply Harmony patches: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
 
             try
@@ -56,23 +56,23 @@ namespace UTSTwitchIntegration
                 this.spawnManager = SpawnManager.Instance;
                 ModConfiguration config = ConfigManager.GetConfiguration();
                 string spawnMode = config.EnableImmediateSpawn ? "immediate spawn mode" : "pool mode";
-                Logger.Info($"Spawn manager initialized ({spawnMode})");
+                ModLogger.Info($"Spawn manager initialized ({spawnMode})");
             }
             catch (System.Exception ex)
             {
-                Logger.Error($"Failed to initialize spawn manager: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Failed to initialize spawn manager: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
 
             try
             {
                 this.cooldownManager = new CooldownManager();
-                Logger.Debug("Cooldown manager initialized");
+                ModLogger.Debug("Cooldown manager initialized");
             }
             catch (System.Exception ex)
             {
-                Logger.Error($"Failed to initialize cooldown manager: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Failed to initialize cooldown manager: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
 
             try
@@ -86,13 +86,13 @@ namespace UTSTwitchIntegration
                 }
                 else
                 {
-                    Logger.Info("Twitch integration is disabled in configuration");
+                    ModLogger.Info("Twitch integration is disabled in configuration");
                 }
             }
             catch (System.Exception ex)
             {
-                Logger.Error($"Failed to initialize Twitch client: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Failed to initialize Twitch client: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -119,18 +119,18 @@ namespace UTSTwitchIntegration
 
         public override void OnDeinitializeMelon()
         {
-            Logger.Info("Starting mod cleanup...");
+            ModLogger.Info("Starting mod cleanup...");
 
             if (this.spawnManager != null)
             {
                 try
                 {
                     this.spawnManager.Cleanup();
-                    Logger.Debug("Spawn manager cleanup completed");
+                    ModLogger.Debug("Spawn manager cleanup completed");
                 }
                 catch (System.Exception ex)
                 {
-                    Logger.Error($"Error cleaning up spawn manager: {ex.Message}");
+                    ModLogger.Error($"Error cleaning up spawn manager: {ex.Message}");
                 }
             }
 
@@ -140,11 +140,11 @@ namespace UTSTwitchIntegration
                 {
                     this.twitchClient.Cleanup();
                     this.twitchClient = null;
-                    Logger.Debug("Twitch client cleanup completed");
+                    ModLogger.Debug("Twitch client cleanup completed");
                 }
                 catch (System.Exception ex)
                 {
-                    Logger.Error($"Error cleaning up Twitch client: {ex.Message}");
+                    ModLogger.Error($"Error cleaning up Twitch client: {ex.Message}");
                 }
             }
 
@@ -153,15 +153,15 @@ namespace UTSTwitchIntegration
                 try
                 {
                     this.harmony.UnpatchSelf();
-                    Logger.Debug("Harmony patches removed");
+                    ModLogger.Debug("Harmony patches removed");
                 }
                 catch (System.Exception ex)
                 {
-                    Logger.Error($"Error removing Harmony patches: {ex.Message}");
+                    ModLogger.Error($"Error removing Harmony patches: {ex.Message}");
                 }
             }
 
-            Logger.Info("Mod cleanup completed");
+            ModLogger.Info("Mod cleanup completed");
         }
 
         private void OnCommandReceived(Models.TwitchCommand command)
@@ -174,7 +174,7 @@ namespace UTSTwitchIntegration
                     if (this.cooldownManager != null && this.cooldownManager.IsOnCooldown(command.Username, config.UserCooldownSeconds))
                     {
                         double remainingCooldown = this.cooldownManager.GetRemainingCooldown(command.Username, config.UserCooldownSeconds);
-                        Logger.Debug($"Viewer '{command.Username}' is on cooldown ({remainingCooldown:F1} seconds remaining)");
+                        ModLogger.Debug($"Viewer '{command.Username}' is on cooldown ({remainingCooldown:F1} seconds remaining)");
                         return;
                     }
 
@@ -185,7 +185,7 @@ namespace UTSTwitchIntegration
                         {
                             if (this.spawnManager.TryOverwriteRandomNPC(command.Username))
                             {
-                                Logger.Debug($"Overwrote random NPC with username '{command.Username}'");
+                                ModLogger.Debug($"Overwrote random NPC with username '{command.Username}'");
                                 this.cooldownManager?.RecordCommandUsage(command.Username);
                                 return;
                             }
@@ -199,27 +199,27 @@ namespace UTSTwitchIntegration
                         if (queued)
                         {
                             string spawnMode = config.EnableImmediateSpawn ? "immediate spawn" : "pool";
-                            Logger.Debug($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {this.spawnManager.QueueCount})");
+                            ModLogger.Debug($"Queued viewer '{command.Username}' for {spawnMode} (Pool: {this.spawnManager.QueueCount})");
                         }
                         else
                         {
-                            Logger.Debug($"Viewer '{command.Username}' is already in pool");
+                            ModLogger.Debug($"Viewer '{command.Username}' is already in pool");
                         }
                     }
                     else
                     {
-                        Logger.Warning("SpawnManager is null - cannot queue viewer");
+                        ModLogger.Warning("SpawnManager is null - cannot queue viewer");
                     }
                 }
                 else
                 {
-                    Logger.Debug($"Received unknown command: {command.CommandName} from {command.Username}");
+                    ModLogger.Debug($"Received unknown command: {command.CommandName} from {command.Username}");
                 }
             }
             catch (System.Exception ex)
             {
-                Logger.Error($"Error handling command: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Error handling command: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
         }
     }

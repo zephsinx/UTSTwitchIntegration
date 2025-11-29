@@ -14,7 +14,7 @@ namespace UTSTwitchIntegration.Utils
         Debug = 3,
     }
 
-    public static class Logger
+    public static class ModLogger
     {
         private static MelonLogger.Instance logger;
         private static LogLevel currentLogLevel = LogLevel.Info;

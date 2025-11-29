@@ -7,7 +7,7 @@ using UnityEngine;
 using UTSTwitchIntegration.Config;
 using UTSTwitchIntegration.Models;
 using UTSTwitchIntegration.Queue;
-using ModLogger = UTSTwitchIntegration.Utils.Logger;
+using UTSTwitchIntegration.Utils;
 
 namespace UTSTwitchIntegration.Game
 {

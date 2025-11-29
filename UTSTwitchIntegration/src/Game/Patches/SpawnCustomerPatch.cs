@@ -5,7 +5,7 @@ using Il2CppGame.Customers;
 using Il2CppGame.AIBase;
 using UnityEngine;
 using System.Collections.Concurrent;
-using ModLogger = UTSTwitchIntegration.Utils.Logger;
+using UTSTwitchIntegration.Utils;
 
 namespace UTSTwitchIntegration.Game.Patches
 {
