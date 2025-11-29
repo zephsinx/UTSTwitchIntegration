@@ -34,7 +34,7 @@ usernames shown above them.
 
 1. Install MelonLoader 0.7.2-ci.2367 or above for Ultimate Theater Simulator
 2. Download the mod package from releases
-3. Extract `UTSTwitchIntegration.dll` and TwitchLib DLLs to `[Game Directory]/Mods/`
+3. Extract `UTSTwitchIntegration.dll` to `[Game Directory]/Mods/`
 4. Launch the game once to generate the config file
 5. Edit `[Game Directory]/UserData/UTSTwitchIntegration.cfg` with your preferred settings
 6. Restart the game
