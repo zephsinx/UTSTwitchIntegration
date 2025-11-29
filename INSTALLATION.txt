@@ -47,10 +47,8 @@ STEP 2: INSTALL THE MOD
    UltimateTheaterSimulator\Mods\
 
 2. Extract mod files:
-   From the downloaded mod package, copy these files to the Mods folder:
+   From the downloaded mod package, copy this file to the Mods folder:
    - UTSTwitchIntegration.dll
-   - TwitchLib.Client.dll
-   - (Any other TwitchLib DLLs included)
 
 3. Launch the game:
    - The game should start with MelonLoader
@@ -231,8 +229,6 @@ To remove the mod:
 
 1. Delete these files from [Game Directory]/Mods/:
    - UTSTwitchIntegration.dll
-   - TwitchLib.Client.dll
-   - (Any other TwitchLib DLLs)
 
 2. Optionally delete the config file:
    [Game Directory]/UserData/UTSTwitchIntegration.cfg
