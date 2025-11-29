@@ -1,6 +1,6 @@
 using HarmonyLib;
 using Il2CppGame.Customers;
-using ModLogger = UTSTwitchIntegration.Utils.Logger;
+using UTSTwitchIntegration.Utils;
 // ReSharper disable UnusedMember.Local
 
 namespace UTSTwitchIntegration.Game.Patches

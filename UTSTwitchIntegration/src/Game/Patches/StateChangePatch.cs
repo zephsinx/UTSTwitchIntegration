@@ -3,7 +3,7 @@ using HarmonyLib;
 using Il2CppGame.AIBase;
 using Il2CppGame.Customers;
 using Il2CppGame.Shop;
-using ModLogger = UTSTwitchIntegration.Utils.Logger;
+using UTSTwitchIntegration.Utils;
 // ReSharper disable UnusedMember.Local
 
 namespace UTSTwitchIntegration.Game.Patches

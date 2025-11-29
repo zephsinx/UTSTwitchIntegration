@@ -45,13 +45,13 @@ namespace UTSTwitchIntegration.Twitch
         {
             if (this.isConnecting || this.isConnected)
             {
-                Logger.Warning("Twitch client is already connecting or connected");
+                ModLogger.Warning("Twitch client is already connecting or connected");
                 return;
             }
 
             if (!this.config.Enabled)
             {
-                Logger.Debug("Twitch integration is disabled in configuration");
+                ModLogger.Debug("Twitch integration is disabled in configuration");
                 return;
             }
 
@@ -60,8 +60,8 @@ namespace UTSTwitchIntegration.Twitch
 
             if (string.IsNullOrWhiteSpace(this.config.OAuthToken))
             {
-                Logger.Info("OAuth token not configured. Attempting anonymous connection...");
-                Logger.Info("Anonymous mode: Permission checking unavailable, treating all users as 'Everyone'.");
+                ModLogger.Info("OAuth token not configured. Attempting anonymous connection...");
+                ModLogger.Info("Anonymous mode: Permission checking unavailable, treating all users as 'Everyone'.");
                 this.isAnonymousMode = true;
 
                 Random random = new Random();
@@ -81,13 +81,13 @@ namespace UTSTwitchIntegration.Twitch
                 if (!normalizedToken.StartsWith("oauth:", StringComparison.OrdinalIgnoreCase))
                 {
                     normalizedToken = "oauth:" + normalizedToken;
-                    Logger.Debug("Added 'oauth:' prefix to token");
+                    ModLogger.Debug("Added 'oauth:' prefix to token");
                 }
             }
 
             if (string.IsNullOrWhiteSpace(this.config.ChannelName))
             {
-                Logger.Error("Channel name is not configured. Please set ChannelName in config file.");
+                ModLogger.Error("Channel name is not configured. Please set ChannelName in config file.");
                 return;
             }
 
@@ -95,12 +95,12 @@ namespace UTSTwitchIntegration.Twitch
             if (channelName.StartsWith("#"))
             {
                 channelName = channelName[1..];
-                Logger.Debug("Removed '#' prefix from channel name");
+                ModLogger.Debug("Removed '#' prefix from channel name");
             }
 
             if (channelName.Contains(" ") || channelName.Contains("/") || channelName.Contains("\\"))
             {
-                Logger.Error("Channel name contains invalid characters. Please use only alphanumeric characters and underscores.");
+                ModLogger.Error("Channel name contains invalid characters. Please use only alphanumeric characters and underscores.");
                 return;
             }
 
@@ -109,7 +109,7 @@ namespace UTSTwitchIntegration.Twitch
             try
             {
                 this.isConnecting = true;
-                Logger.Info("Connecting to Twitch...");
+                ModLogger.Info("Connecting to Twitch...");
 
                 ConnectionCredentials credentials = new ConnectionCredentials(
                     connectionUsername,
@@ -130,19 +130,19 @@ namespace UTSTwitchIntegration.Twitch
             catch (Exception ex)
             {
                 this.isConnecting = false;
-                Logger.Error($"Failed to connect to Twitch: {ex.Message}");
+                ModLogger.Error($"Failed to connect to Twitch: {ex.Message}");
 
                 // Provide help for common errors
                 string errorMessage = ex.Message.ToLowerInvariant();
                 if (errorMessage.Contains("authentication") || errorMessage.Contains("token") ||
                     errorMessage.Contains("unauthorized") || errorMessage.Contains("invalid"))
                 {
-                    Logger.Debug("Your OAuth token may be invalid or expired.");
-                    Logger.Debug("Generate a new token at: https://twitchtokengenerator.com/");
-                    Logger.Debug("Make sure to select 'chat:read' scope when generating the token.");
+                    ModLogger.Debug("Your OAuth token may be invalid or expired.");
+                    ModLogger.Debug("Generate a new token at: https://twitchtokengenerator.com/");
+                    ModLogger.Debug("Make sure to select 'chat:read' scope when generating the token.");
                 }
 
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -155,15 +155,15 @@ namespace UTSTwitchIntegration.Twitch
 
             try
             {
-                Logger.Debug("Disconnecting from Twitch...");
+                ModLogger.Debug("Disconnecting from Twitch...");
                 this.client?.Disconnect();
                 this.isConnected = false;
                 this.isConnecting = false;
-                Logger.Debug("Disconnected from Twitch");
+                ModLogger.Debug("Disconnected from Twitch");
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error disconnecting from Twitch: {ex.Message}");
+                ModLogger.Error($"Error disconnecting from Twitch: {ex.Message}");
             }
         }
 
@@ -171,13 +171,13 @@ namespace UTSTwitchIntegration.Twitch
         {
             if (this.tokenInvalid)
             {
-                Logger.Debug("Reconnection skipped: token is invalid");
+                ModLogger.Debug("Reconnection skipped: token is invalid");
                 return;
             }
 
             if (this.reconnectAttempts >= MAX_RECONNECT_ATTEMPTS)
             {
-                Logger.Error($"Max reconnection attempts ({MAX_RECONNECT_ATTEMPTS}) reached. Stopping reconnect.");
+                ModLogger.Error($"Max reconnection attempts ({MAX_RECONNECT_ATTEMPTS}) reached. Stopping reconnect.");
                 return;
             }
 
@@ -185,7 +185,7 @@ namespace UTSTwitchIntegration.Twitch
             float backoff = UnityEngine.Mathf.Min(UnityEngine.Mathf.Pow(2, newAttemptCount - 1), 30f);
             this.reconnectScheduledTime = UnityEngine.Time.time + backoff;
 
-            Logger.Debug($"Reconnecting in {backoff:F1} seconds (attempt {newAttemptCount}/{MAX_RECONNECT_ATTEMPTS})...");
+            ModLogger.Debug($"Reconnecting in {backoff:F1} seconds (attempt {newAttemptCount}/{MAX_RECONNECT_ATTEMPTS})...");
         }
 
         public void CheckAndProcessReconnect()
@@ -193,7 +193,7 @@ namespace UTSTwitchIntegration.Twitch
             if (this.reconnectScheduledTime > 0 && UnityEngine.Time.time >= this.reconnectScheduledTime)
             {
                 this.reconnectScheduledTime = 0f;
-                Logger.Debug($"Attempting reconnection (attempt {this.reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})...");
+                ModLogger.Debug($"Attempting reconnection (attempt {this.reconnectAttempts}/{MAX_RECONNECT_ATTEMPTS})...");
 
                 try
                 {
@@ -201,8 +201,8 @@ namespace UTSTwitchIntegration.Twitch
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"Reconnection attempt failed: {ex.Message}");
-                    Logger.Debug($"Stack trace: {ex.StackTrace}");
+                    ModLogger.Error($"Reconnection attempt failed: {ex.Message}");
+                    ModLogger.Debug($"Stack trace: {ex.StackTrace}");
                 }
             }
         }
@@ -219,23 +219,23 @@ namespace UTSTwitchIntegration.Twitch
                     this.client.OnMessageReceived -= OnTwitchMessageReceived;
                     this.client.OnJoinedChannel -= OnTwitchJoinedChannel;
                     this.client.OnLeftChannel -= OnTwitchLeftChannel;
-                    Logger.Debug("Unsubscribed from Twitch events");
+                    ModLogger.Debug("Unsubscribed from Twitch events");
                 }
 
                 while (this.mainThreadActions.TryDequeue(out _))
                 {
                 }
 
-                Logger.Debug("Cleared main thread action queue");
+                ModLogger.Debug("Cleared main thread action queue");
 
                 Disconnect();
                 this.client = null;
-                Logger.Debug("Twitch client cleanup completed");
+                ModLogger.Debug("Twitch client cleanup completed");
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error during Twitch client cleanup: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Error during Twitch client cleanup: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -252,8 +252,8 @@ namespace UTSTwitchIntegration.Twitch
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error($"Error executing main thread action: {ex.Message}");
-                    Logger.Debug($"Stack trace: {ex.StackTrace}");
+                    ModLogger.Error($"Error executing main thread action: {ex.Message}");
+                    ModLogger.Debug($"Stack trace: {ex.StackTrace}");
                 }
             }
         }
@@ -268,7 +268,7 @@ namespace UTSTwitchIntegration.Twitch
             this.reconnectScheduledTime = 0f;
             this.tokenInvalid = false;
 
-            Logger.Success(this.isAnonymousMode
+            ModLogger.Success(this.isAnonymousMode
                 ? $"Connected to Twitch anonymously as {e.BotUsername}"
                 : $"Connected to Twitch as {e.BotUsername}");
         }
@@ -277,7 +277,7 @@ namespace UTSTwitchIntegration.Twitch
         {
             this.isConnected = false;
             this.isConnecting = false;
-            Logger.Warning("Disconnected from Twitch");
+            ModLogger.Warning("Disconnected from Twitch");
 
             TryScheduleReconnect();
         }
@@ -285,11 +285,11 @@ namespace UTSTwitchIntegration.Twitch
         private void OnTwitchConnectionError(object sender, OnConnectionErrorArgs e)
         {
             this.isConnecting = false;
-            Logger.Error($"Twitch connection error: {e.Error.Message}");
+            ModLogger.Error($"Twitch connection error: {e.Error.Message}");
 
             if (this.isAnonymousMode)
             {
-                Logger.Error("Connection to Twitch failed. Connections may be unreliable.");
+                ModLogger.Error("Connection to Twitch failed. Connections may be unreliable.");
             }
             else
             {
@@ -299,37 +299,37 @@ namespace UTSTwitchIntegration.Twitch
                     errorMessage.Contains("login") || errorMessage.Contains("password"))
                 {
                     this.tokenInvalid = true;
-                    Logger.Error("OAuth token is invalid or expired.");
-                    Logger.Error("Generate a new token at: https://twitchtokengenerator.com/");
-                    Logger.Error("Select 'chat:read' scope, then paste the token in your config file.");
-                    Logger.Error("Reconnect disabled until valid token provided.");
-                    Logger.Debug($"Error details: {e.Error}");
+                    ModLogger.Error("OAuth token is invalid or expired.");
+                    ModLogger.Error("Generate a new token at: https://twitchtokengenerator.com/");
+                    ModLogger.Error("Select 'chat:read' scope, then paste the token in your config file.");
+                    ModLogger.Error("Reconnect disabled until valid token provided.");
+                    ModLogger.Debug($"Error details: {e.Error}");
                     return;
                 }
 
                 if (errorMessage.Contains("network") || errorMessage.Contains("connection") ||
                     errorMessage.Contains("timeout") || errorMessage.Contains("unreachable"))
                 {
-                    Logger.Debug("Check your internet connection and try again.");
+                    ModLogger.Debug("Check your internet connection and try again.");
                 }
                 else if (errorMessage.Contains("channel") || errorMessage.Contains("not found"))
                 {
-                    Logger.Debug("Verify your channel name is correct and the channel exists.");
+                    ModLogger.Debug("Verify your channel name is correct and the channel exists.");
                 }
             }
 
-            Logger.Debug($"Error details: {e.Error}");
+            ModLogger.Debug($"Error details: {e.Error}");
             TryScheduleReconnect();
         }
 
         private static void OnTwitchJoinedChannel(object sender, OnJoinedChannelArgs e)
         {
-            Logger.Success($"Joined channel: {e.Channel}");
+            ModLogger.Success($"Joined channel: {e.Channel}");
         }
 
         private static void OnTwitchLeftChannel(object sender, OnLeftChannelArgs e)
         {
-            Logger.Info($"Left channel: {e.Channel}");
+            ModLogger.Info($"Left channel: {e.Channel}");
         }
 
         private void OnTwitchMessageReceived(object sender, OnMessageReceivedArgs e)
@@ -348,7 +348,7 @@ namespace UTSTwitchIntegration.Twitch
 
                     if (this.config.VisitPermission != PermissionLevel.Everyone)
                     {
-                        Logger.Debug(
+                        ModLogger.Debug(
                             $"Anonymous mode: VisitPermission setting '{PermissionManager.GetPermissionLevelName(this.config.VisitPermission)}' " +
                             "overridden to 'Everyone'. Configure OAuth token for permission checking.");
                     }
@@ -360,7 +360,7 @@ namespace UTSTwitchIntegration.Twitch
 
                 if (!hasPermission)
                 {
-                    Logger.Debug(
+                    ModLogger.Debug(
                         $"User {command.Username} does not have permission for {command.CommandName} " +
                         $"(required: {PermissionManager.GetPermissionLevelName(effectivePermission)}, " +
                         $"user has: {PermissionManager.GetPermissionLevelName(command.UserRole)})");
@@ -371,8 +371,8 @@ namespace UTSTwitchIntegration.Twitch
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error processing Twitch message: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Error processing Twitch message: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -380,8 +380,8 @@ namespace UTSTwitchIntegration.Twitch
         {
             try
             {
-                Logger.Debug($"User {command.Username} used {command.CommandName} command");
-                Logger.Debug(
+                ModLogger.Debug($"User {command.Username} used {command.CommandName} command");
+                ModLogger.Debug(
                     $"Command details - User: {command.Username}, " +
                     $"Role: {PermissionManager.GetPermissionLevelName(command.UserRole)}, " +
                     $"Args: [{string.Join(", ", command.Arguments)}]");
@@ -390,8 +390,8 @@ namespace UTSTwitchIntegration.Twitch
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error processing command: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Error processing command: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
         }
 

@@ -2,7 +2,7 @@ using System;
 using HarmonyLib;
 using Il2CppGame.Customers;
 using Il2CppTMPro;
-using ModLogger = UTSTwitchIntegration.Utils.Logger;
+using UTSTwitchIntegration.Utils;
 
 namespace UTSTwitchIntegration.Game.Patches
 {

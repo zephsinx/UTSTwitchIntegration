@@ -70,6 +70,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="TwitchLib.Client" Version="3.4.0" />
+    <PackageReference Include="Costura.Fody" Version="5.7.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
@@ -77,21 +80,7 @@
       <ModsFolder>F:\Steam\SteamApps\common\UltimateTheaterSimulator\Mods\</ModsFolder>
     </PropertyGroup>
 
-    <!-- Copy main DLL -->
+    <!-- Copy main DLL to output folder -->
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModsFolder)" Condition="Exists('$(ModsFolder)')" />
-
-    <!-- Copy only TwitchLib DLLs (exclude framework DLLs that are already in runtime) -->
-    <!-- CopyLocalLockFileAssemblies copies them directly to OutputPath -->
-    <ItemGroup>
-      <AllDependencyDlls Include="$(OutputPath)*.dll" />
-      <AllDependencyDlls Include="$(OutputPath)$(TargetFramework)\*.dll" />
-    </ItemGroup>
-
-    <!-- Only copy TwitchLib DLLs, exclude main DLL and framework DLLs -->
-    <ItemGroup>
-      <DependencyDllsToCopy Include="@(AllDependencyDlls)" Condition="$([System.String]::Copy('%(Filename)').StartsWith('TwitchLib'))" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(DependencyDllsToCopy)" DestinationFolder="$(ModsFolder)" Condition="Exists('$(ModsFolder)')" SkipUnchangedFiles="true" />
   </Target>
 </Project>

@@ -120,25 +120,25 @@ namespace UTSTwitchIntegration.Config
                 ConfigValidationResult validationResult = ValidateConfiguration();
                 if (!validationResult.IsValid)
                 {
-                    Logger.Error(validationResult.GetFormattedMessage());
+                    ModLogger.Error(validationResult.GetFormattedMessage());
                 }
                 else if (validationResult.HasWarnings)
                 {
-                    Logger.Warning(validationResult.GetFormattedMessage());
+                    ModLogger.Warning(validationResult.GetFormattedMessage());
                 }
 
                 LogConfigurationSummary();
 
-                Logger.Debug("Configuration system initialized");
-                Logger.Debug("Config file location: UserData/UTSTwitchIntegration.cfg");
+                ModLogger.Debug("Configuration system initialized");
+                ModLogger.Debug("Config file location: UserData/UTSTwitchIntegration.cfg");
 
                 MelonPreferences.Save();
-                Logger.Debug("Configuration file updated (new settings added with defaults if needed)");
+                ModLogger.Debug("Configuration file updated (new settings added with defaults if needed)");
             }
             catch (Exception ex)
             {
-                Logger.Error($"Failed to initialize configuration: {ex.Message}");
-                Logger.Debug($"Stack trace: {ex.StackTrace}");
+                ModLogger.Error($"Failed to initialize configuration: {ex.Message}");
+                ModLogger.Debug($"Stack trace: {ex.StackTrace}");
             }
         }
 
@@ -328,9 +328,9 @@ namespace UTSTwitchIntegration.Config
         {
             ModConfiguration modConfiguration = GetConfiguration();
 
-            Logger.Debug("=== Configuration Summary ===");
-            Logger.Debug($"Log Level: {GetLogLevelName(modConfiguration.LogLevel)}");
-            Logger.Debug($"Enabled: {modConfiguration.Enabled}");
+            ModLogger.Debug("=== Configuration Summary ===");
+            ModLogger.Debug($"Log Level: {GetLogLevelName(modConfiguration.LogLevel)}");
+            ModLogger.Debug($"Enabled: {modConfiguration.Enabled}");
 
             if (modConfiguration.Enabled)
             {
@@ -340,27 +340,27 @@ namespace UTSTwitchIntegration.Config
                         ? modConfiguration.OAuthToken[..4] + "..." + modConfiguration.OAuthToken[^4..]
                         : "***";
 
-                Logger.Debug($"OAuth Token: {maskedToken}");
-                Logger.Debug($"Channel Name: {(string.IsNullOrWhiteSpace(modConfiguration.ChannelName) ? "(not set)" : modConfiguration.ChannelName)}");
-                Logger.Debug($"Command Prefix: '{modConfiguration.CommandPrefix}'");
-                Logger.Debug($"Visit Command: '{modConfiguration.VisitCommandName}'");
-                Logger.Debug($"Permission Level: {modConfiguration.VisitPermission} ({GetPermissionLevelName(modConfiguration.VisitPermission)})");
+                ModLogger.Debug($"OAuth Token: {maskedToken}");
+                ModLogger.Debug($"Channel Name: {(string.IsNullOrWhiteSpace(modConfiguration.ChannelName) ? "(not set)" : modConfiguration.ChannelName)}");
+                ModLogger.Debug($"Command Prefix: '{modConfiguration.CommandPrefix}'");
+                ModLogger.Debug($"Visit Command: '{modConfiguration.VisitCommandName}'");
+                ModLogger.Debug($"Permission Level: {modConfiguration.VisitPermission} ({GetPermissionLevelName(modConfiguration.VisitPermission)})");
 
                 string spawnMode = modConfiguration.EnableImmediateSpawn ? "Immediate Spawn" : "Pool Mode";
-                Logger.Debug($"Spawn Mode: {spawnMode}");
+                ModLogger.Debug($"Spawn Mode: {spawnMode}");
 
                 if (!modConfiguration.EnableImmediateSpawn)
                 {
-                    Logger.Debug($"Max Pool Size: {(modConfiguration.MaxPoolSize == 0 ? "Unlimited" : modConfiguration.MaxPoolSize.ToString())}");
-                    Logger.Debug($"Pool Timeout: {(modConfiguration.PoolTimeoutSeconds == 0 ? "None" : $"{modConfiguration.PoolTimeoutSeconds} seconds")}");
+                    ModLogger.Debug($"Max Pool Size: {(modConfiguration.MaxPoolSize == 0 ? "Unlimited" : modConfiguration.MaxPoolSize.ToString())}");
+                    ModLogger.Debug($"Pool Timeout: {(modConfiguration.PoolTimeoutSeconds == 0 ? "None" : $"{modConfiguration.PoolTimeoutSeconds} seconds")}");
                 }
 
                 string selectionMethodName = modConfiguration.SelectionMethod == QueueSelectionMethod.Random ? "Random" : "FIFO";
-                Logger.Debug($"Queue Selection Method: {selectionMethodName}");
-                Logger.Debug($"User Cooldown: {(modConfiguration.UserCooldownSeconds == 0 ? "Disabled" : $"{modConfiguration.UserCooldownSeconds} seconds")}");
+                ModLogger.Debug($"Queue Selection Method: {selectionMethodName}");
+                ModLogger.Debug($"User Cooldown: {(modConfiguration.UserCooldownSeconds == 0 ? "Disabled" : $"{modConfiguration.UserCooldownSeconds} seconds")}");
             }
 
-            Logger.Debug("============================");
+            ModLogger.Debug("============================");
         }
 
         private static string GetPermissionLevelName(PermissionLevel level)
