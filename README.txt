@@ -1,5 +1,5 @@
 ================================================================================
-                        UTS TWITCH INTEGRATION v1.1.4
+                        UTS TWITCH INTEGRATION v1.1.5
 ================================================================================
 
 DESCRIPTION
@@ -139,6 +139,8 @@ CREDITS
 
 VERSION HISTORY
 ---------------
+v1.1.5 - Shrink output dll size
+
 v1.1.4 - Mod now outputs as a single file
 
 v1.1.3 - Updated for game Build ID 20923223
